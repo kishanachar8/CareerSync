@@ -4,12 +4,15 @@ export const USER_ROLES = Object.freeze({
 });
 
 export const APPLICATION_STATUS = Object.freeze({
-  PENDING: 'pending',
-  APPLIED: 'applied',
-  INTERVIEWING: 'interviewing',
-  OFFERED: 'offered',
-  REJECTED: 'rejected',
-  WITHDRAWN: 'withdrawn',
+  PENDING:         'pending',
+  PENDING_MANUAL:  'pending_manual',  // company-site job flagged for manual apply
+  APPLIED:         'applied',
+  UNDER_REVIEW:    'under_review',
+  SHORTLISTED:     'shortlisted',
+  INTERVIEWING:    'interviewing',
+  OFFERED:         'offered',
+  REJECTED:        'rejected',
+  WITHDRAWN:       'withdrawn',
 });
 
 export const JOB_SOURCES = Object.freeze({
@@ -22,7 +25,6 @@ export const JOB_SOURCES = Object.freeze({
   JOOBLE:    'jooble',
   REMOTEOK:  'remoteok',
   ARBEITNOW: 'arbeitnow',
-  HIMALAYAS: 'himalayas',
   JOBICY:    'jobicy',
   THEMUSE:   'themuse',
   FINDWORK:  'findwork',

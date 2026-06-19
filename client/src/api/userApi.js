@@ -19,9 +19,18 @@ export const deleteExperience = (expId) =>
 export const updatePreferences = (prefs) =>
   axiosInstance.patch('/users/me/preferences', prefs);
 
+export const addEducation = (eduData) =>
+  axiosInstance.post('/users/me/education', eduData);
+
+export const updateEducation = (eduId, eduData) =>
+  axiosInstance.put(`/users/me/education/${eduId}`, eduData);
+
+export const deleteEducation = (eduId) =>
+  axiosInstance.delete(`/users/me/education/${eduId}`);
+
 export const uploadAvatar = (formData) =>
   axiosInstance.patch('/users/me/avatar', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { 'Content-Type': undefined }, // let the browser set multipart boundary
   });
 
 export const deleteAvatar = () => axiosInstance.delete('/users/me/avatar');

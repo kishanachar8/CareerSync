@@ -7,7 +7,7 @@ const jobSchema = new Schema(
   {
     title:       { type: String, required: true, trim: true },
     company:     { type: String, required: true, trim: true },
-    location:    { type: String, trim: true, default: 'Remote' },
+    location:    { type: String, trim: true, default: '' },
     source:      { type: String, enum: Object.values(JOB_SOURCES), required: true },
     externalId:  { type: String, trim: true },   // portal-specific job ID for dedup
 

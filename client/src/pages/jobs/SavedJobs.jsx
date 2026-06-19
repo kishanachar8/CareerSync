@@ -8,13 +8,13 @@ import { Link } from 'react-router-dom';
 
 const SavedJobs = () => {
   const dispatch = useDispatch();
-  const { savedJobs, listStatus } = useSelector((s) => s.jobs);
+  const { savedJobs, savedJobsStatus } = useSelector((s) => s.jobs);
 
   useEffect(() => {
     dispatch(fetchSavedJobs());
   }, [dispatch]);
 
-  if (listStatus === 'loading') return <Loader fullPage />;
+  if (savedJobsStatus === 'loading') return <Loader fullPage />;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

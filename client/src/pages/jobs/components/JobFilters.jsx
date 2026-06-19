@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { setFilters } from '../../../features/jobs/jobsSlice.js';
 import Button from '../../../components/ui/Button.jsx';
-import { EMPLOYMENT_TYPES, JOB_SOURCES } from '../../../utils/constants.js';
+import { EMPLOYMENT_TYPES } from '../../../utils/constants.js';
 import { SlidersHorizontal, X } from 'lucide-react';
 
 const POSTED_WITHIN = [
@@ -18,7 +18,6 @@ const JobFilters = ({ onClose }) => {
 
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
-      source: filters.source || '',
       employmentType: filters.employmentType || '',
       postedWithin: '',
       sort: filters.sort || 'latest',
@@ -26,13 +25,13 @@ const JobFilters = ({ onClose }) => {
   });
 
   const onSubmit = (data) => {
-    dispatch(setFilters(data));
+    dispatch(setFilters({ ...data, source: 'naukri' }));
     onClose?.();
   };
 
   const handleClear = () => {
-    reset({ source: '', employmentType: '', postedWithin: '', sort: 'latest' });
-    dispatch(setFilters({ source: '', employmentType: '', postedWithin: '', sort: 'latest' }));
+    reset({ employmentType: '', postedWithin: '', sort: 'latest' });
+    dispatch(setFilters({ source: 'naukri', employmentType: '', postedWithin: '', sort: 'latest' }));
     onClose?.();
   };
 
@@ -59,20 +58,6 @@ const JobFilters = ({ onClose }) => {
         >
           <option value="latest">Latest</option>
           <option value="relevance">Most relevant</option>
-        </select>
-      </div>
-
-      {/* Source */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Source</label>
-        <select
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-          {...register('source')}
-        >
-          <option value="">All sources</option>
-          {JOB_SOURCES.map((s) => (
-            <option key={s} value={s} className="capitalize">{s}</option>
-          ))}
         </select>
       </div>
 

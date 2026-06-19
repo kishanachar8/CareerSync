@@ -40,7 +40,7 @@ const automationRunSchema = new mongoose.Schema(
     portal: {
       type: String,
       required: true,
-      enum: ['naukri', 'linkedin', 'indeed'],
+      enum: ['naukri', 'indeed'],
     },
     status: {
       type: String,

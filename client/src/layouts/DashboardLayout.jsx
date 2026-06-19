@@ -5,21 +5,26 @@ import Toast from '../components/common/Toast.jsx';
 import { useSelector } from 'react-redux';
 
 const DashboardLayout = () => {
-  const sidebarOpen = useSelector((state) => state.ui.sidebarOpen);
+  const sidebarOpen = useSelector((s) => s.ui.sidebarOpen);
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-surface-50 overflow-hidden">
       <Sidebar />
+
+      {/* Main content area — shifts right based on sidebar width */}
       <div
-        className={`flex flex-col flex-1 overflow-hidden transition-all duration-300 ${
-          sidebarOpen ? 'ml-64' : 'ml-16'
-        }`}
+        className="flex flex-col flex-1 overflow-hidden transition-[margin] duration-300 ease-in-out"
+        style={{ marginLeft: sidebarOpen ? 240 : 64 }}
       >
         <Navbar />
-        <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
+
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto p-5 sm:p-6 animate-fade-in">
+            <Outlet />
+          </div>
         </main>
       </div>
+
       <Toast />
     </div>
   );

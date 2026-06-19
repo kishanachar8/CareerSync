@@ -23,7 +23,6 @@ const SOURCE_COLORS = {
   jooble:    'bg-teal-400',
   remoteok:  'bg-emerald-500',
   arbeitnow: 'bg-rose-400',
-  himalayas: 'bg-sky-500',
   jobicy:    'bg-violet-500',
   themuse:   'bg-pink-400',
   findwork:  'bg-amber-500',

@@ -1,6 +1,6 @@
 /**
  * Phase 4 — keyword-based skill extraction.
- * Phase 8 replaces this with OpenAI structured extraction.
+ * Phase 8 replaces this with Gemini structured extraction.
  * The extractedSkills field is already in the Resume schema so the
  * AI results slot in without a schema migration.
  */

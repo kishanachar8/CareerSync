@@ -13,14 +13,16 @@ import {
 
 const router = Router();
 
-// Public search — no auth required (rate-limited globally)
-router.get('/', validate(jobSearchSchema), searchJobs);
-router.get('/:id', getJob);
-
-// Saved jobs — require auth
-router.get('/saved',     authenticate, getSavedJobs);
-router.get('/saved/ids', authenticate, getSavedJobIds);
-router.post('/save',     authenticate, saveJob);
+// Specific paths must come before /:id — otherwise Express matches 'saved' as an id
+router.get('/saved',         authenticate, getSavedJobs);
+router.get('/saved/ids',     authenticate, getSavedJobIds);
+router.post('/save',         authenticate, saveJob);
 router.delete('/save/:jobId', authenticate, unsaveJob);
+
+// Public search
+router.get('/', validate(jobSearchSchema), searchJobs);
+
+// Parameterised — must be last so it doesn't swallow the routes above
+router.get('/:id', getJob);
 
 export default router;

@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateProfile, uploadAvatar, resetSaveStatus } from '../../../features/profile/profileSlice.js';
-import { useDispatch as useReduxDispatch } from 'react-redux';
 import { showToast } from '../../../features/ui/uiSlice.js';
+import { isRejectedWithValue } from '@reduxjs/toolkit';
 import FormField from '../../../components/forms/FormField.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Card from '../../../components/ui/Card.jsx';
@@ -14,50 +14,50 @@ const PersonalInfoForm = () => {
   const { data: profile, saveStatus, saveError } = useSelector((s) => s.profile);
   const fileRef = useRef(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isDirty },
   } = useForm();
+
+  const bioValue = watch('profile.bio') || '';
+  const BIO_MAX = 2000;
 
   // Populate form when profile loads
   useEffect(() => {
     if (profile) {
       reset({
-        name:             profile.name || '',
-        'profile.bio':      profile.profile?.bio || '',
-        'profile.location': profile.profile?.location || '',
-        'profile.phone':    profile.profile?.phone || '',
-        'profile.website':  profile.profile?.website || '',
-        'profile.linkedin': profile.profile?.linkedin || '',
-        'profile.github':   profile.profile?.github || '',
+        name:                profile.name || '',
+        'profile.headline':  profile.profile?.headline || '',
+        'profile.bio':       profile.profile?.bio || '',
+        'profile.location':  profile.profile?.location || '',
+        'profile.phone':     profile.profile?.phone || '',
+        'profile.website':   profile.profile?.website || '',
+        'profile.linkedin':  profile.profile?.linkedin || '',
+        'profile.github':    profile.profile?.github || '',
       });
     }
   }, [profile, reset]);
 
-  // Toast on save
+  // Toast only for profile-form saves (not avatar — avatar has its own inline feedback)
   useEffect(() => {
-    if (saveStatus === 'succeeded') {
+    if (saveStatus === 'succeeded' && !avatarUploading) {
       dispatch(showToast({ message: 'Profile updated successfully', type: 'success' }));
       dispatch(resetSaveStatus());
     }
-  }, [saveStatus, dispatch]);
+  }, [saveStatus, dispatch, avatarUploading]);
 
   const onSubmit = (formData) => {
-    const payload = {
-      name: formData.name,
-      profile: {
-        bio:      formData['profile.bio'],
-        location: formData['profile.location'],
-        phone:    formData['profile.phone'],
-        website:  formData['profile.website'],
-        linkedin: formData['profile.linkedin'],
-        github:   formData['profile.github'],
-      },
-    };
-    dispatch(updateProfile(payload));
+    // react-hook-form v7 treats 'profile.bio' as a nested path,
+    // so formData.profile is already the full nested object.
+    dispatch(updateProfile({
+      name:    formData.name,
+      profile: formData.profile,
+    }));
   };
 
   const handleAvatarChange = (e) => {
@@ -65,11 +65,19 @@ const PersonalInfoForm = () => {
     if (!file) return;
 
     setAvatarPreview(URL.createObjectURL(file));
+    setAvatarUploading(true);
 
     const fd = new FormData();
     fd.append('avatar', file);
-    dispatch(uploadAvatar(fd)).then(() => {
-      dispatch(showToast({ message: 'Avatar updated', type: 'success' }));
+    dispatch(uploadAvatar(fd)).then((result) => {
+      setAvatarUploading(false);
+      if (isRejectedWithValue(result)) {
+        dispatch(showToast({ message: result.payload || 'Avatar upload failed', type: 'error' }));
+        setAvatarPreview(null); // revert preview on failure
+      } else {
+        dispatch(showToast({ message: 'Avatar updated', type: 'success' }));
+      }
+      dispatch(resetSaveStatus());
     });
   };
 
@@ -83,8 +91,15 @@ const PersonalInfoForm = () => {
         <Card.Body className="flex items-center gap-6">
           <div className="relative shrink-0">
             <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
-              {avatarSrc ? (
-                <img src={avatarSrc} alt="Avatar" className="w-full h-full object-cover" />
+              {avatarUploading ? (
+                <div className="w-5 h-5 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
+              ) : avatarSrc ? (
+                <img
+                  src={avatarSrc}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
               ) : (
                 <User size={32} className="text-primary-400" />
               )}
@@ -92,7 +107,8 @@ const PersonalInfoForm = () => {
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary-600 rounded-full flex items-center justify-center text-white shadow hover:bg-primary-700 transition-colors"
+              disabled={avatarUploading}
+              className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary-600 rounded-full flex items-center justify-center text-white shadow hover:bg-primary-700 transition-colors disabled:opacity-50"
               aria-label="Change avatar"
             >
               <Camera size={13} />
@@ -140,20 +156,51 @@ const PersonalInfoForm = () => {
               <FormField
                 label="Phone"
                 type="tel"
-                placeholder="+1 (555) 000-0000"
+                placeholder="+91 98765 43210"
                 error={errors['profile.phone']}
                 {...register('profile.phone')}
               />
             </div>
 
             <FormField
-              label="Bio"
-              placeholder="A short description about yourself…"
-              error={errors['profile.bio']}
-              {...register('profile.bio', {
-                maxLength: { value: 300, message: 'Max 300 characters' },
+              label="Professional headline"
+              placeholder="e.g. Senior Software Engineer · React · Node.js · 4 years exp"
+              error={errors['profile.headline']}
+              {...register('profile.headline', {
+                maxLength: { value: 120, message: 'Max 120 characters' },
               })}
             />
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Bio
+              </label>
+              <textarea
+                rows={5}
+                placeholder="Describe your professional background, key skills, what you're looking for…"
+                className={[
+                  'w-full px-3 py-2 border rounded-lg text-sm transition-colors resize-y',
+                  'placeholder:text-gray-400',
+                  'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+                  errors['profile.bio']
+                    ? 'border-red-400 bg-red-50 focus:ring-red-400'
+                    : 'border-gray-300 bg-white',
+                ].join(' ')}
+                {...register('profile.bio', {
+                  maxLength: { value: BIO_MAX, message: `Max ${BIO_MAX} characters` },
+                })}
+              />
+              <div className="flex items-center justify-between mt-1">
+                {errors['profile.bio'] ? (
+                  <p className="text-xs text-red-500">{errors['profile.bio'].message}</p>
+                ) : (
+                  <span />
+                )}
+                <span className={`text-xs ${bioValue.length > BIO_MAX * 0.9 ? 'text-amber-500' : 'text-gray-400'}`}>
+                  {bioValue.length} / {BIO_MAX}
+                </span>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField

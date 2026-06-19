@@ -29,12 +29,35 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
+  // Mongoose invalid ObjectId cast
+  if (err.name === 'CastError' && err.kind === 'ObjectId') {
+    return res.status(400).json({ success: false, message: 'Invalid ID format', errors: [] });
+  }
+
   // JWT errors
   if (err.name === 'JsonWebTokenError') {
     return res.status(401).json({ success: false, message: 'Invalid token', errors: [] });
   }
   if (err.name === 'TokenExpiredError') {
     return res.status(401).json({ success: false, message: 'Token expired', errors: [] });
+  }
+
+  // Multer: file too large
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(413).json({ success: false, message: 'File too large', errors: [] });
+  }
+  // Multer: unexpected field
+  if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+    return res.status(400).json({
+      success: false,
+      message: `Unexpected file field: ${err.field}`,
+      errors: [],
+    });
+  }
+
+  // SyntaxError from body-parser (malformed JSON)
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({ success: false, message: 'Invalid JSON in request body', errors: [] });
   }
 
   // Unexpected errors — hide details in production

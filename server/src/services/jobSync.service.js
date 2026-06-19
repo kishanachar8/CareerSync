@@ -1,15 +1,7 @@
 import Job from '../models/Job.js';
 import redis from '../config/redis.js';
 import logger from '../utils/logger.js';
-import { searchAdzuna } from '../providers/adzuna.provider.js';
-import { searchJooble } from '../providers/jooble.provider.js';
-import { searchRemoteOK } from '../providers/remoteok.provider.js';
-import { searchArbeitnow } from '../providers/arbeitnow.provider.js';
-import { searchHimalayas } from '../providers/himalayas.provider.js';
-import { searchJobicy } from '../providers/jobicy.provider.js';
-import { searchTheMuse } from '../providers/themuse.provider.js';
-import { searchFindwork } from '../providers/findwork.provider.js';
-import { searchReed } from '../providers/reed.provider.js';
+import { searchIndeed } from '../providers/indeed.provider.js';
 
 const SYNC_CACHE_TTL = 30 * 60; // 30 minutes
 
@@ -36,17 +28,8 @@ async function upsertJobs(jobs) {
 }
 
 /**
- * Fetch jobs from all configured providers and upsert into MongoDB.
- * Returns early (skipped) if this keyword+location combo was synced recently.
- *
- * Free providers (no API key needed):
- *   RemoteOK, Arbeitnow, Himalayas, Jobicy, TheMuse
- *
- * Optional keyed providers (skipped when env var not set):
- *   Adzuna (ADZUNA_APP_ID + ADZUNA_API_KEY)
- *   Jooble (JOOBLE_API_KEY)
- *   Findwork (FINDWORK_API_KEY)
- *   Reed (REED_API_KEY)
+ * Sync jobs from Indeed for the given keyword.
+ * Naukri jobs are populated separately via the automation bot.
  */
 export const syncJobsFromProviders = async ({ keywords, location = '', forceSync = false }) => {
   const key = syncCacheKey(keywords, location);
@@ -57,17 +40,7 @@ export const syncJobsFromProviders = async ({ keywords, location = '', forceSync
   }
 
   const results = await Promise.allSettled([
-    // Free — no key required
-    searchRemoteOK({ keywords }),
-    searchArbeitnow({ keywords }),
-    searchHimalayas({ keywords }),
-    searchJobicy({ keywords }),
-    searchTheMuse({ keywords }),
-    // Keyed — silently no-ops when env not configured
-    searchAdzuna({ keywords, location }),
-    searchJooble({ keywords, location }),
-    searchFindwork({ keywords, location }),
-    searchReed({ keywords, location }),
+    searchIndeed({ keywords, location: location || 'India' }),
   ]);
 
   const all = results.flatMap(r => (r.status === 'fulfilled' ? r.value : []));
@@ -75,9 +48,7 @@ export const syncJobsFromProviders = async ({ keywords, location = '', forceSync
 
   await redis.set(key, '1', 'EX', SYNC_CACHE_TTL).catch(() => {});
 
-  const bySource = {};
-  all.forEach(j => { bySource[j.source] = (bySource[j.source] || 0) + 1; });
-  logger.info(`[JobSync] "${keywords}"@"${location}": ${all.length} fetched, ${saved} upserted — ${JSON.stringify(bySource)}`);
+  logger.info(`[JobSync] "${keywords}": ${all.length} fetched from Indeed, ${saved} upserted`);
 
   return { fetched: all.length, saved };
 };

@@ -16,6 +16,20 @@ const experienceSchema = new Schema(
   { _id: true },
 );
 
+const educationSchema = new Schema(
+  {
+    institution: { type: String, required: true, trim: true, maxlength: 150 },
+    degree:      { type: String, required: true, trim: true, maxlength: 100 },
+    field:       { type: String, trim: true, maxlength: 100 },
+    from:        { type: Date, required: true },
+    to:          { type: Date },
+    current:     { type: Boolean, default: false },
+    grade:       { type: String, trim: true, maxlength: 50 },
+    description: { type: String, trim: true, maxlength: 500 },
+  },
+  { _id: true },
+);
+
 const userSchema = new Schema(
   {
     name: {
@@ -56,18 +70,21 @@ const userSchema = new Schema(
 
     // ─── Profile ─────────────────────────────────────────────────────
     profile: {
-      bio: { type: String, trim: true, maxlength: 300 },
+      headline: { type: String, trim: true, maxlength: 120 },
+      bio:      { type: String, trim: true, maxlength: 2000 },
       location: { type: String, trim: true },
-      phone: { type: String, trim: true },
-      website: { type: String, trim: true },
+      phone:    { type: String, trim: true },
+      website:  { type: String, trim: true },
       linkedin: { type: String, trim: true },
-      github: { type: String, trim: true },
-      avatar: { type: String },
+      github:   { type: String, trim: true },
+      avatar:   { type: String },
     },
 
     skills: [{ type: String, trim: true, lowercase: true }],
 
     experience: [experienceSchema],
+
+    education: [educationSchema],
 
     preferences: {
       jobTypes: [{ type: String }],

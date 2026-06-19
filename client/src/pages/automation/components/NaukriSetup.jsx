@@ -26,6 +26,7 @@ const NaukriSetup = () => {
   const [form, setForm] = useState({
     username: '', password: '',
     noticePeriodDays: 30, currentCtcLakhs: 0, expectedCtcLakhs: 0, coverNote: '',
+    yearsOfExperience: 0,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -39,11 +40,12 @@ const NaukriSetup = () => {
     if (creds) {
       setForm((f) => ({
         ...f,
-        username: creds.username || '',
-        noticePeriodDays: creds.preferences?.noticePeriodDays ?? 30,
-        currentCtcLakhs:  creds.preferences?.currentCtcLakhs  ?? 0,
-        expectedCtcLakhs: creds.preferences?.expectedCtcLakhs ?? 0,
-        coverNote:        creds.preferences?.coverNote         ?? '',
+        username:          creds.username || '',
+        noticePeriodDays:  creds.preferences?.noticePeriodDays  ?? 30,
+        currentCtcLakhs:   creds.preferences?.currentCtcLakhs   ?? 0,
+        expectedCtcLakhs:  creds.preferences?.expectedCtcLakhs  ?? 0,
+        coverNote:         creds.preferences?.coverNote          ?? '',
+        yearsOfExperience: creds.preferences?.yearsOfExperience ?? 0,
       }));
     }
   }, [creds]);
@@ -59,6 +61,7 @@ const NaukriSetup = () => {
         currentCtcLakhs:   form.currentCtcLakhs,
         expectedCtcLakhs:  form.expectedCtcLakhs,
         coverNote:         form.coverNote,
+        yearsOfExperience: form.yearsOfExperience,
       },
     }));
     if (saveCredentials.fulfilled.match(result)) {
@@ -71,7 +74,7 @@ const NaukriSetup = () => {
   const handleDelete = async () => {
     if (!confirm('Remove Naukri credentials? This cannot be undone.')) return;
     await dispatch(removeCredentials('naukri'));
-    setForm({ username: '', password: '', noticePeriodDays: 30, currentCtcLakhs: 0, expectedCtcLakhs: 0, coverNote: '' });
+    setForm({ username: '', password: '', noticePeriodDays: 30, currentCtcLakhs: 0, expectedCtcLakhs: 0, coverNote: '', yearsOfExperience: 0 });
     setEditing(false);
   };
 
@@ -148,7 +151,7 @@ const NaukriSetup = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-center text-sm">
+            <div className="grid grid-cols-4 gap-3 text-center text-sm">
               <div className="p-2 bg-gray-50 rounded-lg">
                 <div className="font-semibold text-gray-800">{creds.preferences?.noticePeriodDays ?? '—'}d</div>
                 <div className="text-xs text-gray-400">Notice Period</div>
@@ -160,6 +163,10 @@ const NaukriSetup = () => {
               <div className="p-2 bg-gray-50 rounded-lg">
                 <div className="font-semibold text-gray-800">{creds.preferences?.expectedCtcLakhs ?? '—'} L</div>
                 <div className="text-xs text-gray-400">Expected CTC</div>
+              </div>
+              <div className="p-2 bg-gray-50 rounded-lg">
+                <div className="font-semibold text-gray-800">{creds.preferences?.yearsOfExperience ?? '—'} yr</div>
+                <div className="text-xs text-gray-400">Experience</div>
               </div>
             </div>
 
@@ -249,7 +256,7 @@ const NaukriSetup = () => {
 
             <div className="border-t border-gray-100 pt-4">
               <p className="text-xs font-medium text-gray-600 mb-3">Apply Preferences</p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Notice Period</label>
                   <select
@@ -261,6 +268,15 @@ const NaukriSetup = () => {
                       <option key={d} value={d}>{d === 0 ? 'Immediate' : `${d} days`}</option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Years of Experience</label>
+                  <input
+                    type="number" min="0" max="60" step="1"
+                    value={form.yearsOfExperience}
+                    onChange={(e) => setForm((f) => ({ ...f, yearsOfExperience: Number(e.target.value) }))}
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Current CTC (L)</label>

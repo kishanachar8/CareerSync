@@ -12,6 +12,8 @@ import {
   getRunProgress,
   getRunById,
   cancelRun,
+  listScreeningQA,
+  deleteScreeningQA,
 } from './automation.controller.js';
 
 const router = Router();
@@ -31,5 +33,9 @@ router.get('/runs',                                                           ge
 router.get('/runs/:id/progress',                                              getRunProgress);
 router.get('/runs/:id',                                                       getRunById);
 router.patch('/runs/:id/cancel',                                              cancelRun);
+
+// Screening Q&A management
+router.get('/qa',        listScreeningQA);
+router.delete('/qa/:id', deleteScreeningQA);
 
 export default router;

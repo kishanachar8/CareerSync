@@ -10,7 +10,7 @@ const automationCredentialsSchema = new mongoose.Schema(
     portal: {
       type: String,
       required: true,
-      enum: ['naukri', 'linkedin', 'indeed'],
+      enum: ['naukri', 'indeed'],
       lowercase: true,
     },
     username: {
@@ -25,13 +25,10 @@ const automationCredentialsSchema = new mongoose.Schema(
     },
     // User-configured base preferences (set in UI)
     preferences: {
-      // Naukri
       noticePeriodDays:  { type: Number, default: 30 },
       currentCtcLakhs:   { type: Number, default: 0 },
       expectedCtcLakhs:  { type: Number, default: 0 },
       coverNote:         { type: String, default: '', maxlength: 1000 },
-      // LinkedIn
-      phoneNumber:       { type: String, default: '' },
       yearsOfExperience: { type: Number, default: 0 },
     },
     /**

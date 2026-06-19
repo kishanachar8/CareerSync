@@ -22,7 +22,7 @@ const schema = Joi.object({
   CLOUDINARY_API_KEY: Joi.string().allow('').default(''),
   CLOUDINARY_API_SECRET: Joi.string().allow('').default(''),
 
-  OPENAI_API_KEY: Joi.string().allow('').default(''),
+  GEMINI_API_KEY: Joi.string().allow('').default(''),
 
   // Job provider APIs (all optional — providers are silently skipped when not set)
   ADZUNA_APP_ID:    Joi.string().allow('').default(''),
@@ -39,8 +39,14 @@ const schema = Joi.object({
 
   CLIENT_URL: Joi.string().uri().default('http://localhost:5173'),
 
-  // Automation: AES-256-GCM key for encrypting portal credentials at rest
+  // Automation: AES-256-GCM keys for encrypting credentials and screening answers at rest
   CREDENTIALS_ENCRYPTION_KEY: Joi.string().min(32).default('change-me-in-production-min-32-chars!!'),
+  ANSWER_ENCRYPTION_KEY:      Joi.string().min(32).allow('').default(''),
+
+  // Gmail OAuth (Google Cloud Console → OAuth 2.0 credentials)
+  GOOGLE_CLIENT_ID:     Joi.string().allow('').default(''),
+  GOOGLE_CLIENT_SECRET: Joi.string().allow('').default(''),
+  GOOGLE_REDIRECT_URI:  Joi.string().allow('').default('http://localhost:5000/api/v1/gmail/callback'),
 }).unknown(true);
 
 const { error, value: env } = schema.validate(process.env);

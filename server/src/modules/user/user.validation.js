@@ -5,14 +5,15 @@ export const updateProfileSchema = Joi.object({
   name: Joi.string().min(2).max(50).trim(),
 
   profile: Joi.object({
-    bio:      Joi.string().max(300).trim().allow(''),
+    headline: Joi.string().max(120).trim().allow(''),
+    bio:      Joi.string().max(2000).trim().allow(''),
     location: Joi.string().max(100).trim().allow(''),
     phone:    Joi.string().max(20).trim().allow(''),
     website:  Joi.string().uri().trim().allow(''),
     linkedin: Joi.string().uri().trim().allow(''),
     github:   Joi.string().uri().trim().allow(''),
   }),
-}).min(1); // at least one field required
+}).min(1);
 
 export const updateSkillsSchema = Joi.object({
   skills: Joi.array()
@@ -35,6 +36,20 @@ export const experienceSchema = Joi.object({
     'date.min': 'End date must be after the start date',
   }),
   current:     Joi.boolean().default(false),
+  description: Joi.string().trim().max(500).allow(''),
+});
+
+export const educationSchema = Joi.object({
+  institution: Joi.string().trim().max(150).required(),
+  degree:      Joi.string().trim().max(100).required(),
+  field:       Joi.string().trim().max(100).allow(''),
+  from:        Joi.date().max('now').required().messages({ 'date.max': 'Start date cannot be in the future' }),
+  to:          Joi.date().min(Joi.ref('from')).when('current', {
+    is: false,
+    then: Joi.optional(),
+  }).messages({ 'date.min': 'End date must be after the start date' }),
+  current:     Joi.boolean().default(false),
+  grade:       Joi.string().trim().max(50).allow(''),
   description: Joi.string().trim().max(500).allow(''),
 });
 

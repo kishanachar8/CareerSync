@@ -79,10 +79,11 @@ const jobsSlice = createSlice({
     listings: [],
     currentJob: null,
     savedJobs: [],
-    savedJobIds: [],          // plain array — serialisable in Redux
+    savedJobIds: [],
     filters: { keyword: '', location: '', employmentType: '', source: '', sort: 'latest' },
     pagination: { page: 1, limit: 20, total: 0, totalPages: 0 },
     listStatus: 'idle',
+    savedJobsStatus: 'idle',
     jobStatus: 'idle',
     error: null,
   },
@@ -116,9 +117,12 @@ const jobsSlice = createSlice({
         state.error = action.payload;
       })
 
+      .addCase(fetchSavedJobs.pending, (state) => { state.savedJobsStatus = 'loading'; })
       .addCase(fetchSavedJobs.fulfilled, (state, action) => {
+        state.savedJobsStatus = 'succeeded';
         state.savedJobs = action.payload.jobs;
       })
+      .addCase(fetchSavedJobs.rejected, (state) => { state.savedJobsStatus = 'failed'; })
 
       .addCase(fetchSavedJobIds.fulfilled, (state, action) => {
         // Store as plain array — serialisable in Redux; convert to Set on read

@@ -1,13 +1,13 @@
 import asyncHandler from '../../utils/asyncHandler.js';
 import ApiResponse from '../../utils/ApiResponse.js';
 import ApiError from '../../utils/ApiError.js';
+import ScreeningAnswer from '../../models/ScreeningAnswer.js';
 import AutomationCredentials from '../../models/AutomationCredentials.js';
 import AutomationRun from '../../models/AutomationRun.js';
 import Resume from '../../models/Resume.js';
 import { encrypt, decrypt } from '../../utils/crypto.util.js';
 import { hasSession } from '../../automation/browser/sessionManager.js';
 import { runNaukriDirectApply } from '../../automation/naukri/naukri.directApply.js';
-import { runLinkedInDirectApply } from '../../automation/linkedin/linkedin.directApply.js';
 import logger from '../../utils/logger.js';
 
 // ─── Credentials ─────────────────────────────────────────────────────────────
@@ -16,7 +16,11 @@ import logger from '../../utils/logger.js';
 export const saveCredentials = asyncHandler(async (req, res) => {
   const { portal, username, password, preferences } = req.body;
 
-  const encryptedPassword = encrypt(password);
+  if (!password || password.length < 4) {
+    throw new ApiError(422, 'Password is required (minimum 4 characters)');
+  }
+
+  const encryptedPassword = encrypt(password || '');
 
   // Use dot notation per preference key so we never replace the whole
   // subdocument — avoids Mongoose validation errors for unset sibling fields.
@@ -80,7 +84,7 @@ export const deleteCredentials = asyncHandler(async (req, res) => {
 });
 
 /**
- * Test login — opens a headed Chromium window, attempts login, closes it.
+ * Test login — opens a headed Chromium window, attempts Naukri login, closes it.
  * This is intentionally slow (~10-20s) because it launches a real browser.
  */
 export const testLogin = asyncHandler(async (req, res) => {
@@ -88,101 +92,93 @@ export const testLogin = asyncHandler(async (req, res) => {
   const creds = await AutomationCredentials.findOne({ userId: req.user.id, portal, isActive: true });
   if (!creds) throw new ApiError(404, 'No credentials saved. Save them first.');
 
-  let password;
+  let password = '';
   try {
     password = decrypt(creds.encryptedPassword);
   } catch {
-    throw new ApiError(500, 'Failed to decrypt saved credentials — please re-save them');
+    throw new ApiError(500, 'Failed to decrypt credentials — please re-save them');
   }
-
-  const PORTAL_CONFIG = {
-    naukri: {
-      url:       'https://www.naukri.com/nlogin/login',
-      emailSel:  '#usernameField',
-      passSel:   '#passwordField',
-      submitSel: 'button[type="submit"]',
-      errorSel:  '.err-container, [class*="errorMessage"]',
-      successUrl: ['myjobs', 'mynaukri', '/'],
-    },
-    linkedin: {
-      url:       'https://www.linkedin.com/login',
-      emailSel:  '#username',
-      passSel:   '#password',
-      submitSel: 'button[type="submit"]',
-      errorSel:  '#error-for-username, .alert-content, [class*="form__label--error"]',
-      successUrl: ['/feed', '/jobs', '/in/'],
-    },
-  };
-
-  const cfg = PORTAL_CONFIG[portal];
-  if (!cfg) throw new ApiError(400, `Unsupported portal: ${portal}`);
 
   const { chromium } = await import('playwright');
   let browser = null;
 
+  const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  const BROWSER_ARGS = ['--start-maximized', '--disable-blink-features=AutomationControlled', '--no-sandbox'];
+
+  // CSS selectors that indicate an active Naukri session
+  const LOGGED_IN_SELS = [
+    '[class*="nI-gNb-drawer__icon"]',
+    'a[href*="mnjuser"]',
+    '[class*="view-profile"]',
+    '.nI-gNb-nav__icon--profile',
+    '[class*="user-name"]',
+    '[class*="nI-gNb-nav__links--user"]',
+  ];
+
+  let page = null;
+
   try {
-    browser = await chromium.launch({
-      headless: false,
-      slowMo: 80,
-      args: ['--start-maximized', '--disable-blink-features=AutomationControlled', '--no-sandbox'],
-    });
+    browser = await chromium.launch({ headless: false, slowMo: 80, args: BROWSER_ARGS });
     const ctx = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       viewport: null,
-      locale: 'en-US',
+      locale: 'en-IN',
       timezoneId: 'Asia/Kolkata',
     });
     await ctx.addInitScript(() => {
       Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
       window.chrome = { runtime: {} };
     });
+    page = await ctx.newPage();
 
-    const page = await ctx.newPage();
-    const delay = (ms) => new Promise((r) => setTimeout(r, ms));
-
-    await page.goto(cfg.url, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+    await page.goto('https://www.naukri.com/nlogin/login', { waitUntil: 'domcontentloaded', timeout: 20_000 });
     await delay(1500);
-
-    // Dismiss any popups (Naukri has them)
     try { await page.keyboard.press('Escape'); } catch {}
     await delay(500);
 
-    const emailEl = await page.waitForSelector(cfg.emailSel, { timeout: 10_000 });
+    const emailEl = await page.waitForSelector('#usernameField', { timeout: 10_000 });
     await emailEl.click({ clickCount: 3 });
     await emailEl.type(creds.username, { delay: 90 });
     await delay(600);
 
-    const passEl = await page.waitForSelector(cfg.passSel, { timeout: 5_000 });
+    const passEl = await page.waitForSelector('#passwordField', { timeout: 5_000 });
     await passEl.click({ clickCount: 3 });
     await passEl.type(password, { delay: 90 });
     await delay(700);
 
-    await page.click(cfg.submitSel);
+    await page.click('button[type="submit"]');
     await page.waitForLoadState('domcontentloaded', { timeout: 20_000 }).catch(() => {});
-    await delay(2500);
-
-    const currentUrl = page.url();
-
-    // Check for identity verification (LinkedIn CAPTCHA / checkpoint)
-    if (currentUrl.includes('/checkpoint') || currentUrl.includes('verification') || currentUrl.includes('authwall')) {
-      throw new Error('Portal requires identity verification — complete it in the browser window, then save credentials again.');
-    }
-
-    // Check for login error element
-    const errEl = await page.$(cfg.errorSel).catch(() => null);
-    if (errEl) {
-      const errText = (await errEl.textContent())?.trim() || 'Login failed';
-      throw new Error(errText);
-    }
-
-    // Check success URL indicators
-    const loggedIn = cfg.successUrl.some((s) => currentUrl.includes(s));
-    if (!loggedIn) {
-      throw new Error('Login did not redirect to a recognized page — check credentials or look for a CAPTCHA in the browser.');
-    }
-
-    // Keep browser open briefly so user can see they are logged in
     await delay(3000);
+
+    const url = page.url();
+    if (url.includes('/checkpoint') || url.includes('verification')) {
+      throw new Error('Naukri requires identity verification — complete it in the browser window.');
+    }
+    const errEl = await page.$('.err-container, [class*="errorMessage"]').catch(() => null);
+    if (errEl) {
+      const errTxt = (await errEl.textContent())?.trim();
+      if (errTxt) throw new Error(errTxt);
+    }
+
+    // Check for login via CSS selectors (reliable across Naukri layout changes)
+    let loggedIn = false;
+    for (const sel of LOGGED_IN_SELS) {
+      if (await page.$(sel).catch(() => null)) { loggedIn = true; break; }
+    }
+    // Fallback: if we're on naukri.com and NOT on the login page, consider it success
+    if (!loggedIn) {
+      const currentUrl = page.url();
+      loggedIn = currentUrl.includes('naukri.com') &&
+                 !currentUrl.includes('/nlogin') &&
+                 !currentUrl.includes('/login');
+    }
+
+    if (!loggedIn) {
+      throw new Error('Login did not succeed — check your credentials or complete any CAPTCHA visible in the browser window.');
+    }
+
+    await delay(2000);
 
     await AutomationCredentials.findByIdAndUpdate(creds._id, {
       $set: { lastVerifiedAt: new Date(), lastLoginError: null },
@@ -264,15 +260,9 @@ export const triggerAutoApply = asyncHandler(async (req, res) => {
     resumeId,
   };
 
-  if (portal === 'linkedin') {
-    runLinkedInDirectApply(runArgs).catch((err) => {
-      logger.error(`[AutomationController] LinkedIn background run failed: ${err.message}`);
-    });
-  } else {
-    runNaukriDirectApply(runArgs).catch((err) => {
-      logger.error(`[AutomationController] Naukri background run failed: ${err.message}`);
-    });
-  }
+  runNaukriDirectApply(runArgs).catch((err) => {
+    logger.error(`[AutomationController] ${portal} background run failed: ${err.message}`);
+  });
 
   logger.info(`[AutomationController] Run ${run._id} started for user ${userId}`);
 
@@ -341,4 +331,37 @@ export const cancelRun = asyncHandler(async (req, res) => {
   );
   if (!run) throw new ApiError(404, 'Run not found or already completed');
   res.json(new ApiResponse(200, { status: run.status }, 'Run cancelled'));
+});
+
+// ─── Screening QA Management ──────────────────────────────────────────────────
+
+/** List all stored Q&A pairs for the authenticated user */
+export const listScreeningQA = asyncHandler(async (req, res) => {
+  const { source = 'naukri', page = 1, limit = 50 } = req.query;
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const [items, total] = await Promise.all([
+    ScreeningAnswer.find({ userId: req.user.id, source })
+      .select('-answer')               // never expose encrypted ciphertext to frontend
+      .sort({ usageCount: -1, updatedAt: -1 })
+      .skip(skip)
+      .limit(Number(limit))
+      .lean(),
+    ScreeningAnswer.countDocuments({ userId: req.user.id, source }),
+  ]);
+
+  res.json(new ApiResponse(200, {
+    items,
+    pagination: { page: Number(page), limit: Number(limit), total },
+  }, 'Screening Q&A list'));
+});
+
+/** Delete a single Q&A entry */
+export const deleteScreeningQA = asyncHandler(async (req, res) => {
+  const deleted = await ScreeningAnswer.findOneAndDelete({
+    _id:    req.params.id,
+    userId: req.user.id,
+  });
+  if (!deleted) throw new ApiError(404, 'Q&A entry not found');
+  res.json(new ApiResponse(200, null, 'Q&A entry deleted'));
 });

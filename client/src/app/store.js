@@ -7,6 +7,7 @@ import profileReducer from '../features/profile/profileSlice.js';
 import applicationsReducer from '../features/applications/applicationsSlice.js';
 import aiReducer from '../features/ai/aiSlice.js';
 import automationReducer from '../features/automation/automationSlice.js';
+import gmailReducer from '../features/gmail/gmailSlice.js';
 
 const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ const store = configureStore({
     applications: applicationsReducer,
     ai:           aiReducer,
     automation:   automationReducer,
+    gmail:        gmailReducer,
   },
   devTools: import.meta.env.DEV,
 });

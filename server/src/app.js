@@ -18,6 +18,7 @@ import aiRoutes from './modules/ai/ai.routes.js';
 import analyticsRoutes from './modules/analytics/analytics.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
 import automationRoutes from './modules/automation/automation.routes.js';
+import gmailRoutes from './modules/gmail/gmail.routes.js';
 
 const app = express();
 
@@ -64,6 +65,7 @@ app.use('/api/v1/ai',           aiRoutes);
 app.use('/api/v1/analytics',    analyticsRoutes);
 app.use('/api/v1/admin',        adminRoutes);
 app.use('/api/v1/automation',   automationRoutes);
+app.use('/api/v1/gmail',        gmailRoutes);
 
 // ─── 404 + Global Error Handler ──────────────────────────────────────────────
 app.use(notFound);

@@ -20,6 +20,8 @@ import Application from '../../models/Application.js';
 import Job from '../../models/Job.js';
 import logger from '../../utils/logger.js';
 import { saveSession, loadSession } from '../browser/sessionManager.js';
+import { handleScreeningQuestions, makePauseResolver } from '../qa/index.js';
+import * as qaService from '../qa/qaService.js';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -54,10 +56,13 @@ const LOGIN_SEL = {
 };
 
 const SRP_TITLE_SELS = [
-  '.row1 a.title',
   'a.title',
+  '.srp-jobtuple-wrapper a.title',
+  '.jobTuple a.title',
+  '.cust-job-tuple a.title',
   'h2 a[href*="naukri.com"]',
   '[class*="title"] a[href*="naukri.com"]',
+  'a[href*="naukri.com/job-listings"]',
 ];
 
 // "Apply on company website" indicators — checked BEFORE clicking anything
@@ -131,7 +136,10 @@ async function isLoggedIn(page) {
     if (await page.$(sel).catch(() => null)) return true;
   }
   const url = page.url();
-  return url.includes('/mnjuser') || url.includes('myapps');
+  if (url.includes('/mnjuser') || url.includes('myapps')) return true;
+  // Accept any naukri.com page that is NOT the login page
+  if (url.includes('naukri.com') && !url.includes('/nlogin') && !url.includes('/login')) return true;
+  return false;
 }
 
 async function doLogin(page, ctx, userId, username, password) {
@@ -175,45 +183,126 @@ async function doLogin(page, ctx, userId, username, password) {
 
 // ─── Search ───────────────────────────────────────────────────────────────────
 
-// freshness = days (1, 3, 7, 15, 30) → Naukri jobAge param
-function buildSearchUrl(keywords, location, freshness = 0) {
-  const slug    = keywords.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-  const locSlug = location ? `-in-${location.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : '';
-  const k = encodeURIComponent(keywords);
-  const l = location ? `&l=${encodeURIComponent(location)}` : '';
-  const age = freshness ? `&jobAge=${freshness}` : '';
-  return `${BASE}/${slug}-jobs${locSlug}?k=${k}${l}&nignore=0${age}`;
+// Extract Naukri's internal job ID from a job URL.
+// URL formats seen in the wild:
+//   /job-listings-title-company-location-190924000003
+//   /job-listings?jobId=190924000003
+function extractNaukriJobId(href) {
+  try {
+    const url = new URL(href);
+    const qp  = url.searchParams.get('jobId');
+    if (qp) return qp;
+    const m = url.pathname.match(/(\d{12,})$/);
+    return m ? m[1] : null;
+  } catch { return null; }
 }
 
-async function extractJobsFromSRP(page, maxJobs) {
-  for (const sel of SRP_TITLE_SELS) {
-    const el = await page.$(sel).catch(() => null);
-    if (el) break;
-  }
-  await page.waitForSelector(SRP_TITLE_SELS.join(', '), { timeout: 15_000 }).catch(() => {});
-  await delay(jitter(1500, 2500));
+// Naukri slug: dots → -dot-, everything else non-alphanum → hyphen
+function toNaukriSlug(text) {
+  return text
+    .toLowerCase()
+    .replace(/\./g, '-dot-')
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
+// Build the Naukri search URL.
+// Use only slug + query params — avoids the k/l/nignore params that cause
+// Naukri to ignore jobAge when both the slug and text-search params are present.
+function buildSearchUrl(keywords, location, freshness = 0, yearsOfExperience = 0) {
+  const slug    = toNaukriSlug(keywords);
+  const locSlug = location ? `-in-${toNaukriSlug(location)}` : '';
+  const params  = new URLSearchParams();
+  if (freshness > 0)           params.set('jobAge', String(freshness));
+  if (yearsOfExperience > 0)   params.set('experience', String(yearsOfExperience));
+  const qs = params.toString();
+  return `${BASE}/${slug}-jobs${locSlug}${qs ? '?' + qs : ''}`;
+}
+
+// Naukri slug pagination: page 1 = no suffix, page 2 = "-2", page 3 = "-3", …
+// Query params (jobAge, experience) are preserved.
+function buildNextPageUrl(currentUrl) {
+  try {
+    const u = new URL(currentUrl);
+    const m = u.pathname.match(/^(.*?)-(\d+)$/);
+    u.pathname = m ? `${m[1]}-${parseInt(m[2], 10) + 1}` : `${u.pathname}-2`;
+    return u.toString();
+  } catch { return null; }
+}
+
+// Extract jobs from the page currently loaded in `page`.
+async function scrapeCurrentSRPPage(page, max) {
   return page.evaluate(
     ({ sels, max }) => {
-      const seen = new Set();
-      const results = [];
+      const seen = new Set(), results = [];
       for (const sel of sels) {
         for (const a of document.querySelectorAll(sel)) {
-          const href = a.href || '';
-          const title = a.textContent?.trim() || '';
+          const href = a.href || '', title = a.textContent?.trim() || '';
           if (!href || !title || seen.has(href) || !href.includes('naukri.com')) continue;
           seen.add(href);
-          const card = a.closest('article') || a.closest('[class*="jobTuple"]');
+          const card = a.closest('article') || a.closest('[class*="jobTuple"]') || a.closest('[class*="job-container"]');
           const compEl = card?.querySelector('[class*="comp-name"], a.comp-name');
-          results.push({ href, title, company: compEl?.textContent?.trim() || '' });
+          // Location: try multiple Naukri SRP card selectors
+          const locEl = card?.querySelector(
+            '.loc a, .loc span, [class*="location"] a, [class*="location"] span, ' +
+            '[class*="loc-link"], li.location, span[class*="location"], [class*="locWdth"]',
+          );
+          const locLinks = card ? [...card.querySelectorAll('a[href*="/jobs-in-"]')] : [];
+          const location = locEl?.textContent?.trim()
+            || locLinks.map(l => l.textContent?.trim()).filter(Boolean).join(', ')
+            || '';
+          results.push({
+            href,
+            title,
+            company: compEl?.textContent?.trim() || '',
+            location,
+          });
           if (results.length >= max) return results;
         }
         if (results.length >= max) break;
       }
       return results;
     },
-    { sels: SRP_TITLE_SELS, max: maxJobs },
+    { sels: SRP_TITLE_SELS, max },
   );
+}
+
+// Paginate through Naukri SRP pages until maxJobs are collected.
+// Naukri shows 20 results per page — so 50 jobs = 3 pages.
+async function extractJobsFromSRP(page, maxJobs) {
+  await page.waitForSelector(SRP_TITLE_SELS.join(', '), { timeout: 15_000 }).catch(() => {});
+  await delay(jitter(1500, 2500));
+
+  const NAUKRI_PAGE_SIZE = 20;
+  const seen = new Set();
+  const allJobs = [];
+
+  while (allJobs.length < maxJobs) {
+    const needed   = maxJobs - allJobs.length;
+    const pageJobs = await scrapeCurrentSRPPage(page, needed);
+
+    for (const job of pageJobs) {
+      if (!seen.has(job.href)) { seen.add(job.href); allJobs.push(job); }
+      if (allJobs.length >= maxJobs) break;
+    }
+
+    // Fewer than a full page = last page of results
+    if (pageJobs.length < NAUKRI_PAGE_SIZE || allJobs.length >= maxJobs) break;
+
+    const nextUrl = buildNextPageUrl(page.url());
+    if (!nextUrl) break;
+
+    logger.info(`[NaukriDirect] Paginating → ${nextUrl}`);
+    await page.goto(nextUrl, { waitUntil: 'domcontentloaded', timeout: 25_000 });
+    await delay(jitter(2000, 3000));
+
+    // Stop if the next page has no job cards (gone past last page)
+    const hasResults = await page.$(SRP_TITLE_SELS.join(', ')).catch(() => null);
+    if (!hasResults) break;
+  }
+
+  return allJobs;
 }
 
 // ─── Field helpers ────────────────────────────────────────────────────────────
@@ -223,14 +312,17 @@ async function extractJobsFromSRP(page, maxJobs) {
  * capturedFields wins (more specific / user-corrected values).
  */
 function buildFieldMap(prefs, capturedFields) {
+  // yearsOfExperience from prefs is the user-stated default for both relevant
+  // and total experience fields — overridden by anything captured in a prior run.
+  const expFallback = prefs.yearsOfExperience > 0 ? prefs.yearsOfExperience : null;
   return {
-    noticePeriodDays:        capturedFields.noticePeriodDays   ?? prefs.noticePeriodDays  ?? 30,
-    currentCtcLakhs:         capturedFields.currentCtcLakhs    ?? prefs.currentCtcLakhs   ?? 0,
-    expectedCtcLakhs:        capturedFields.expectedCtcLakhs   ?? prefs.expectedCtcLakhs  ?? 0,
-    relevantExperienceYears: capturedFields.relevantExperienceYears ?? null,
-    totalExperienceYears:    capturedFields.totalExperienceYears    ?? null,
+    noticePeriodDays:        capturedFields.noticePeriodDays        ?? prefs.noticePeriodDays  ?? 30,
+    currentCtcLakhs:         capturedFields.currentCtcLakhs         ?? prefs.currentCtcLakhs   ?? 0,
+    expectedCtcLakhs:        capturedFields.expectedCtcLakhs        ?? prefs.expectedCtcLakhs  ?? 0,
+    relevantExperienceYears: capturedFields.relevantExperienceYears ?? expFallback,
+    totalExperienceYears:    capturedFields.totalExperienceYears    ?? expFallback,
     currentLocation:         capturedFields.currentLocation         ?? null,
-    ...capturedFields,  // any extra keys pass through
+    ...capturedFields,
   };
 }
 
@@ -281,37 +373,179 @@ async function fillKnownFields(page, fieldMap) {
   }
 }
 
+// Normalise any string to a stable cache key (same helper used in both evaluate() calls)
+const toKey = (t) =>
+  t?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || null;
+
+// ── Shared label-finder logic (inlined into each evaluate() call) ─────────────
+// Naukri's apply modal uses multiple structures:
+//   • Standard forms   → <label for="id">
+//   • Chatbot modal    → .chatbot-ques / [class*="ques"] sibling text
+//   • Quick-apply form → label / legend inside a parent container
+const FIND_LABEL_FN = /* js */`
+  function findLabel(el) {
+    if (el.id) {
+      try {
+        const lbl = document.querySelector('label[for="' + CSS.escape(el.id) + '"]');
+        if (lbl && lbl.textContent.trim()) return lbl.textContent.trim();
+      } catch {}
+    }
+    let node = el.parentElement;
+    for (let i = 0; i < 6 && node; i++, node = node.parentElement) {
+      const qEl = node.querySelector(
+        '[class*="chatbot-ques"],[class*="chatbotQues"],[class*="ssrc__ques"],' +
+        '[class*="question-label"],[class*="questionLabel"]'
+      );
+      if (qEl && qEl.textContent.trim()) return qEl.textContent.trim();
+      const lbl = node.querySelector('label,legend');
+      if (lbl && lbl !== el && lbl.textContent.trim().length < 200) return lbl.textContent.trim();
+      if (/form[-_]?field|field[-_]?group|widget|question|form[-_]?row/i.test(node.className || '')) break;
+    }
+    return el.getAttribute('aria-label') || el.placeholder || el.name || null;
+  }
+`;
+
 /**
- * Read all filled input/select values from the visible apply modal.
- * Returns a raw map: { labelKey: value }
+ * Capture ALL filled field values from the visible apply modal, keyed by the
+ * question label text (not by field id/name which changes every session).
+ * Handles: text/number inputs, select dropdowns (stores option text), radio buttons.
  */
-async function captureFilledFields(page) {
-  return page.evaluate(() => {
-    const container =
+async function captureAllAnswers(page) {
+  return page.evaluate((findLabelSrc) => {
+    // eslint-disable-next-line no-new-func
+    const findLabel = new Function('el', findLabelSrc + '\nreturn findLabel(el);');
+    const toKey = (t) =>
+      t?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || null;
+
+    const modal =
       document.querySelector('[class*="chatbot"]') ||
       document.querySelector('[class*="applyModal"]') ||
+      document.querySelector('[class*="apply-modal"]') ||
       document.querySelector('[class*="apply-form"]') ||
-      document.querySelector('form') ||
-      document.body;
+      document.querySelector('form') || document.body;
 
-    const result = {};
-    for (const el of container.querySelectorAll(
-      'input:not([type="hidden"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]), select, textarea',
+    const answers = {};
+
+    // ── Text / number / tel / textarea ──────────────────────────────────────
+    for (const el of modal.querySelectorAll(
+      'input:not([type="hidden"]):not([type="submit"]):not([type="file"])' +
+      ':not([type="radio"]):not([type="checkbox"]), textarea',
     )) {
       const val = el.value?.trim();
       if (!val || val === '0') continue;
-      const key = (
-        el.placeholder?.trim() ||
-        el.getAttribute('aria-label')?.trim() ||
-        el.name?.trim() ||
-        el.id?.trim()
-      )?.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-      if (key && key.length >= 2 && key.length <= 80) {
-        result[key] = val;
+      const key = toKey(findLabel(el));
+      if (key) answers[key] = val;
+    }
+
+    // ── Select — store option text, not value (more stable across sessions) ─
+    for (const el of modal.querySelectorAll('select')) {
+      if (!el.value || el.selectedIndex < 0) continue;
+      const text = el.options[el.selectedIndex]?.text?.trim();
+      if (!text || /^select|^choose|^-/i.test(text) || text === '0') continue;
+      const key = toKey(findLabel(el));
+      if (key) answers[key] = text;
+    }
+
+    // ── Radio buttons ────────────────────────────────────────────────────────
+    for (const fieldset of modal.querySelectorAll('fieldset')) {
+      const legend = fieldset.querySelector('legend');
+      if (!legend) continue;
+      const checked = fieldset.querySelector('input[type="radio"]:checked');
+      if (!checked) continue;
+      let ans = checked.value;
+      try {
+        const lbl = fieldset.querySelector('label[for="' + CSS.escape(checked.id) + '"]') ||
+                    checked.closest('label');
+        if (lbl) ans = lbl.textContent?.trim() || ans;
+      } catch {}
+      const key = toKey(legend.textContent);
+      if (key && ans) answers[key] = ans;
+    }
+
+    return answers;
+  }, FIND_LABEL_FN);
+}
+
+/**
+ * Pre-fill the current modal step with all cached question-answer pairs by
+ * matching question label text to cache keys.
+ * Only fills fields that are currently empty — doesn't overwrite user changes.
+ */
+async function replayAnswers(page, cache) {
+  const entries = Object.entries(cache).filter(([, v]) => v != null && v !== '');
+  if (!entries.length) return;
+
+  await page.evaluate(([cacheEntries, findLabelSrc]) => {
+    // eslint-disable-next-line no-new-func
+    const findLabel = new Function('el', findLabelSrc + '\nreturn findLabel(el);');
+    const toKey = (t) =>
+      t?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || null;
+    const cacheObj = Object.fromEntries(cacheEntries);
+
+    const setNative = (el, val) => {
+      const proto = el.tagName === 'TEXTAREA'
+        ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
+      if (setter) setter.call(el, val); else el.value = val;
+      el.dispatchEvent(new Event('input',  { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    const modal =
+      document.querySelector('[class*="chatbot"]') ||
+      document.querySelector('[class*="applyModal"]') ||
+      document.querySelector('[class*="apply-modal"]') ||
+      document.querySelector('[class*="apply-form"]') ||
+      document.querySelector('form') || document.body;
+
+    // ── Text / textarea ──────────────────────────────────────────────────────
+    for (const el of modal.querySelectorAll(
+      'input:not([type="hidden"]):not([type="submit"]):not([type="file"])' +
+      ':not([type="radio"]):not([type="checkbox"]), textarea',
+    )) {
+      if (el.value?.trim()) continue;
+      const key = toKey(findLabel(el));
+      if (key && cacheObj[key] !== undefined) setNative(el, String(cacheObj[key]));
+    }
+
+    // ── Select ───────────────────────────────────────────────────────────────
+    for (const el of modal.querySelectorAll('select')) {
+      if (el.value && el.value !== '' && el.value !== '0') continue;
+      const key = toKey(findLabel(el));
+      if (!key || cacheObj[key] === undefined) continue;
+      const target = String(cacheObj[key]).toLowerCase();
+      for (const opt of el.options) {
+        if (opt.text.trim().toLowerCase() === target ||
+            opt.text.trim().toLowerCase().includes(target)) {
+          el.value = opt.value;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          break;
+        }
       }
     }
-    return result;
-  });
+
+    // ── Radio buttons ────────────────────────────────────────────────────────
+    for (const fieldset of modal.querySelectorAll('fieldset')) {
+      if (fieldset.querySelector('input[type="radio"]:checked')) continue;
+      const legend = fieldset.querySelector('legend');
+      const key = toKey(legend?.textContent);
+      if (!key || cacheObj[key] === undefined) continue;
+      const target = String(cacheObj[key]).toLowerCase();
+      for (const radio of fieldset.querySelectorAll('input[type="radio"]')) {
+        let txt = '';
+        try {
+          const lbl = fieldset.querySelector('label[for="' + CSS.escape(radio.id) + '"]') ||
+                      radio.closest('label');
+          txt = (lbl?.textContent?.trim() || radio.value)?.toLowerCase();
+        } catch { txt = radio.value?.toLowerCase() || ''; }
+        if (txt === target || txt.includes(target)) {
+          radio.checked = true;
+          radio.dispatchEvent(new Event('change', { bubbles: true }));
+          break;
+        }
+      }
+    }
+  }, [entries, FIND_LABEL_FN]);
 }
 
 /**
@@ -364,7 +598,7 @@ async function saveDiscoveredFields(userId, portal, newFields) {
  *   { result: 'skipped',   message }
  *   { result: 'failed',    message }
  */
-async function applyToJob(page, ctx, job, fieldMap, runId, jobIndex) {
+async function applyToJob(page, ctx, job, fieldMap, userId, runId, jobIndex) {
   try {
     logger.info(`[NaukriDirect] Navigating: ${job.title}`);
     await page.goto(job.href, { waitUntil: 'domcontentloaded', timeout: 25_000 });
@@ -383,6 +617,32 @@ async function applyToJob(page, ctx, job, fieldMap, runId, jobIndex) {
       (el) => el.textContent?.trim() || '',
     ).catch(() => '');
     if (detailTitle) job.title = detailTitle;
+
+    // ── Extract location from detail page (more reliable than SRP card) ─────
+    if (!job.location) {
+      const detailLocation = await page.evaluate(() => {
+        // Try <a href="/jobs-in-*"> links in the job header area
+        const headerArea =
+          document.querySelector('[class*="jd-header"]') ||
+          document.querySelector('[class*="jobHeader"]') ||
+          document.querySelector('.jd-header-ann-left') ||
+          document.body;
+
+        const locLinks = [...headerArea.querySelectorAll('a[href*="/jobs-in-"]')];
+        if (locLinks.length) {
+          return locLinks.map(l => l.textContent?.trim()).filter(Boolean).join(', ');
+        }
+
+        // Fallback: any element with location-like class
+        const locEl = headerArea.querySelector(
+          '[class*="location"], [class*="loc-links"], .loc a, ' +
+          'span[itemprop="addressLocality"]',
+        );
+        return locEl?.textContent?.trim() || '';
+      }).catch(() => '');
+
+      if (detailLocation) job.location = detailLocation;
+    }
 
     // ── Already applied? ────────────────────────────────────────────────────
     const alreadyEl = await page.$(MODAL_SEL.alreadyApplied).catch(() => null);
@@ -444,7 +704,7 @@ async function applyToJob(page, ctx, job, fieldMap, runId, jobIndex) {
 
     // Naukri's own chatbot / quick-apply modal
     await delay(jitter(2000, 3000));
-    return await handleNaukriModal(page, fieldMap, runId, jobIndex);
+    return await handleNaukriModal(page, fieldMap, userId, runId, jobIndex);
 
   } catch (err) {
     logger.warn(`[NaukriDirect] Error on ${job.title}: ${err.message}`);
@@ -456,30 +716,65 @@ async function applyToJob(page, ctx, job, fieldMap, runId, jobIndex) {
  * Walk through Naukri's chatbot-style apply modal.
  *
  * Each step:
- *   1. Fill known fields
- *   2. Pause USER_FILL_PAUSE ms so the user can fill unknowns
- *   3. Read what's been filled (capture)
- *   4. Click Next (or Submit)
+ *   1. Fill known fields (CTC, notice, experience) by CSS selector.
+ *   2. handleScreeningQuestions() — looks up cached answers for every other
+ *      visible field, fills them, pauses for unknowns, and saves new answers
+ *      to PostgreSQL for future runs.
+ *   3. If any required question has no answer, skip submission for this job.
+ *   4. Click Next (or Submit).
  */
-async function handleNaukriModal(page, fieldMap, runId, jobIndex) {
+async function handleNaukriModal(page, fieldMap, userId, runId, jobIndex) {
   const allCaptured = {};
   let submittedSuccessfully = false;
 
+  // Labels already filled by fillKnownFields() — skip them in the Q&A pass
+  const KNOWN_LABELS = [
+    'notice period', 'current ctc', 'expected ctc',
+    'relevant experience', 'total experience', 'location',
+  ];
+
   const MAX_STEPS = 10;
   for (let step = 0; step < MAX_STEPS; step++) {
-    // Fill what we know
+    // 1. Fill well-known preference fields by CSS selector (CTC, notice, etc.)
     await fillKnownFields(page, fieldMap);
 
-    // Pause — user can type any missing fields now
-    await delay(USER_FILL_PAUSE);
+    // 2. Q&A auto-fill — replaces the old replayAnswers + pause + captureAllAnswers
+    const qaResult = await handleScreeningQuestions(page, userId, {
+      qaService,
+      resolveNewAnswer: makePauseResolver(page, USER_FILL_PAUSE),
+      skipLabels:       KNOWN_LABELS,
+      source:           PORTAL,
+    });
 
-    // Capture everything visible in the modal after the user has interacted
-    const raw = await captureFilledFields(page);
+    // Merge newly-captured answers into fieldMap so subsequent modal steps benefit
+    for (const { label, answer } of qaResult.newlyCaptured) {
+      const key = toKey(label);
+      if (key) {
+        allCaptured[key] = answer;
+        fieldMap[key]    = answer;
+      }
+    }
+
+    // Also run the old captureAllAnswers so existing MongoDB capturedFields
+    // pipeline continues to work (belt-and-suspenders during migration).
+    const raw        = await captureAllAnswers(page);
     const normalised = normaliseCapture(raw);
-    Object.assign(allCaptured, normalised);
+    Object.assign(allCaptured, raw, normalised);
+    Object.assign(fieldMap, raw, normalised);
 
-    // Merge newly discovered values into fieldMap for next steps
-    Object.assign(fieldMap, normalised);
+    // Defensive: never submit if a required screening question has no answer
+    if (!qaResult.safeToSubmit) {
+      const requiredMissing = qaResult.unfilled
+        .filter((f) => f.required)
+        .map((f) => f.label)
+        .join(', ');
+      logger.warn(`[NaukriDirect] Skipping job — unanswered required fields: ${requiredMissing}`);
+      return {
+        result:    'skipped',
+        message:   `Required screening questions unanswered: ${requiredMissing}`,
+        newFields: allCaptured,
+      };
+    }
 
     // Check for success before clicking anything
     const successEl = await page.$(MODAL_SEL.success).catch(() => null);
@@ -494,13 +789,11 @@ async function handleNaukriModal(page, fieldMap, runId, jobIndex) {
         await delay(jitter(2500, 4000));
 
         const success = await page.$(MODAL_SEL.success).catch(() => null);
-        submittedSuccessfully = true;
-
-        if (!success) {
+        if (success) {
+          submittedSuccessfully = true;
+        } else {
           const url = page.url();
-          if (url.includes('applied') || url.includes('success') || url.includes('myapps')) {
-            submittedSuccessfully = true;
-          }
+          submittedSuccessfully = url.includes('applied') || url.includes('success') || url.includes('myapps');
         }
         break;
       }
@@ -520,8 +813,8 @@ async function handleNaukriModal(page, fieldMap, runId, jobIndex) {
   }
 
   return {
-    result:    submittedSuccessfully ? 'applied' : 'applied',
-    message:   submittedSuccessfully ? 'Applied successfully' : 'Application flow completed',
+    result:    submittedSuccessfully ? 'applied' : 'failed',
+    message:   submittedSuccessfully ? 'Applied successfully' : 'Application flow completed without confirmation',
     newFields: allCaptured,
   };
 }
@@ -585,7 +878,7 @@ export const runNaukriDirectApply = async ({
     }
 
     // ── Search ───────────────────────────────────────────────────────────────
-    const searchUrl = buildSearchUrl(keywords, location, freshness);
+    const searchUrl = buildSearchUrl(keywords, location, freshness, prefs.yearsOfExperience || 0);
     await setStep(runId, `Searching for "${keywords}" jobs on Naukri…`);
 
     await page.goto(searchUrl, { waitUntil: 'domcontentloaded', timeout: 25_000 });
@@ -621,7 +914,7 @@ export const runNaukriDirectApply = async ({
       await setStep(runId, `Job ${i + 1}/${jobs.length}: "${job.title}" @ ${job.company || 'Unknown'}`);
 
       const { result, message, externalUrl, newFields } = await applyToJob(
-        page, ctx, job, fieldMap, runId, i,
+        page, ctx, job, fieldMap, userId, runId, i,
       );
 
       // Persist result
@@ -649,26 +942,46 @@ export const runNaukriDirectApply = async ({
       }
 
       // Record in CareerSync Applications collection
-      if (result === 'applied' || result === 'already_applied') {
+      if (result === 'applied' || result === 'already_applied' || result === 'external') {
         try {
+          const jobSet = {
+            title:   job.title,
+            company: job.company || 'Unknown',
+          };
+          if (job.location) jobSet.location = job.location;
+
           const jobDoc = await Job.findOneAndUpdate(
             { source: PORTAL, applyUrl: job.href },
             {
-              // Always update title + company so 'Unknown' records get corrected
-              $set: {
-                title:   job.title,
-                company: job.company || 'Unknown',
-              },
+              $set: jobSet,
               $setOnInsert: {
                 source: PORTAL, applyUrl: job.href, externalId: job.href,
-                isActive: true, postedAt: new Date(),
+                location: '', isActive: true, postedAt: new Date(),
               },
             },
             { upsert: true, new: true },
           );
+
+          const isExternal = result === 'external';
           await Application.findOneAndUpdate(
             { userId, jobId: jobDoc._id },
-            { $set: { userId, jobId: jobDoc._id, resumeId, status: 'applied', source: 'auto', appliedAt: new Date() } },
+            {
+              $set: {
+                userId,
+                jobId:           jobDoc._id,
+                resumeId,
+                naukriJobId:     extractNaukriJobId(job.href),
+                applyType:       isExternal ? 'company_site' : 'platform',
+                manualApply:     isExternal,
+                companyApplyUrl: isExternal ? (externalUrl || null) : null,
+                status:          isExternal ? 'pending_manual' : 'applied',
+                source:          'auto',
+                appliedAt:       isExternal ? null : new Date(),
+                _statusNote:     isExternal
+                  ? `Company-site job queued for manual apply: ${externalUrl || job.href}`
+                  : `Auto-applied via Naukri bot (run ${runId})`,
+              },
+            },
             { upsert: true },
           );
         } catch {}

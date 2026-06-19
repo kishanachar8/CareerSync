@@ -218,9 +218,7 @@ const RunRow = ({ run }) => {
           </span>
           <div className="min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate flex items-center gap-1.5">
-              {run.portal === 'linkedin'
-                ? <span className="text-[#0A66C2] font-bold text-xs shrink-0">in</span>
-                : <span className="text-[#FF7555] font-bold text-xs shrink-0">N</span>}
+              {PORTAL_ICON[run.portal] || PORTAL_ICON.naukri}
               "{run.keywords}"{run.location ? ` · ${run.location}` : ''}
             </p>
             <p className="text-xs text-gray-400">{timeAgo(run.createdAt)}</p>
@@ -320,13 +318,21 @@ const RunRow = ({ run }) => {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-const RunHistory = ({ refreshTrigger }) => {
-  const dispatch = useDispatch();
-  const { runs, runsPagination, runsStatus } = useSelector((s) => s.automation);
+const PORTAL_ICON = {
+  naukri:  <span className="text-[#FF7555] font-bold text-xs shrink-0">N</span>,
+  indeed:  <span className="text-[#2164F3] font-bold text-xs shrink-0">i</span>,
+  linkedin:<span className="text-[#0A66C2] font-bold text-xs shrink-0">in</span>,
+};
 
+const RunHistory = ({ refreshTrigger, portal }) => {
+  const dispatch = useDispatch();
+  const { runs: allRuns, runsPagination, runsStatus } = useSelector((s) => s.automation);
+
+  // Filter by portal if prop provided
+  const runs = portal ? allRuns.filter((r) => r.portal === portal) : allRuns;
   const activeRun = runs.find((r) => r.status === 'running');
 
-  const load = () => dispatch(fetchRunHistory({ limit: 20 }));
+  const load = () => dispatch(fetchRunHistory({ limit: 50 }));
 
   // Load on mount and when a new run is triggered
   useEffect(() => { load(); }, [refreshTrigger]); // eslint-disable-line react-hooks/exhaustive-deps

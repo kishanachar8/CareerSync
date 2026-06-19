@@ -1,58 +1,92 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearToast } from '../../features/ui/uiSlice.js';
-import { CheckCircle, XCircle, Info, AlertTriangle, X } from 'lucide-react';
+import { CheckCircle2, XCircle, Info, AlertTriangle, X } from 'lucide-react';
 
-const ICONS = {
-  success: CheckCircle,
-  error:   XCircle,
-  info:    Info,
-  warning: AlertTriangle,
+const CONFIG = {
+  success: {
+    icon:    CheckCircle2,
+    bar:     'bg-emerald-500',
+    wrap:    'bg-white border-l-4 border-emerald-500',
+    icon_cl: 'text-emerald-500',
+  },
+  error: {
+    icon:    XCircle,
+    bar:     'bg-rose-500',
+    wrap:    'bg-white border-l-4 border-rose-500',
+    icon_cl: 'text-rose-500',
+  },
+  warning: {
+    icon:    AlertTriangle,
+    bar:     'bg-amber-500',
+    wrap:    'bg-white border-l-4 border-amber-500',
+    icon_cl: 'text-amber-500',
+  },
+  info: {
+    icon:    Info,
+    bar:     'bg-primary-500',
+    wrap:    'bg-white border-l-4 border-primary-500',
+    icon_cl: 'text-primary-500',
+  },
 };
 
-const COLORS = {
-  success: 'bg-green-50 border-green-200 text-green-800',
-  error:   'bg-red-50 border-red-200 text-red-800',
-  info:    'bg-blue-50 border-blue-200 text-blue-800',
-  warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-};
-
-const ICON_COLORS = {
-  success: 'text-green-500',
-  error:   'text-red-500',
-  info:    'text-blue-500',
-  warning: 'text-yellow-500',
-};
+const DURATION = 4000;
 
 const Toast = () => {
   const dispatch = useDispatch();
-  const toast = useSelector((s) => s.ui.toast);
+  const toast    = useSelector((s) => s.ui.toast);
+  const [progress, setProgress] = useState(100);
 
   useEffect(() => {
     if (!toast) return;
-    const timer = setTimeout(() => dispatch(clearToast()), 4000);
-    return () => clearTimeout(timer);
+
+    setProgress(100);
+    const startTime = Date.now();
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      setProgress(Math.max(0, 100 - (elapsed / DURATION) * 100));
+    }, 30);
+
+    const timer = setTimeout(() => dispatch(clearToast()), DURATION);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timer);
+    };
   }, [toast, dispatch]);
 
   if (!toast) return null;
 
-  const Icon = ICONS[toast.type] || Info;
+  const { type = 'info' } = toast;
+  const cfg  = CONFIG[type] || CONFIG.info;
+  const Icon = cfg.icon;
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-[100] flex items-start gap-3 px-4 py-3 rounded-xl border shadow-lg text-sm max-w-sm animate-in slide-in-from-bottom-2 ${COLORS[toast.type] || COLORS.info}`}
       role="alert"
+      aria-live="polite"
+      className={`fixed bottom-5 right-5 z-[200] w-80 rounded-xl shadow-xl overflow-hidden animate-slide-up ${cfg.wrap}`}
     >
-      <Icon size={18} className={`shrink-0 mt-0.5 ${ICON_COLORS[toast.type] || ''}`} />
-      <span className="flex-1">{toast.message}</span>
-      <button
-        type="button"
-        onClick={() => dispatch(clearToast())}
-        className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
-        aria-label="Dismiss"
-      >
-        <X size={15} />
-      </button>
+      <div className="flex items-start gap-3 px-4 py-3.5">
+        <Icon size={18} className={`shrink-0 mt-0.5 ${cfg.icon_cl}`} />
+        <p className="flex-1 text-sm font-medium text-gray-800 leading-snug">{toast.message}</p>
+        <button
+          onClick={() => dispatch(clearToast())}
+          className="shrink-0 text-gray-400 hover:text-gray-600 transition-colors -mt-0.5 -mr-1 p-0.5 rounded"
+          aria-label="Dismiss"
+        >
+          <X size={14} />
+        </button>
+      </div>
+
+      {/* Progress bar */}
+      <div className="h-0.5 bg-gray-100">
+        <div
+          className={`h-full ${cfg.bar} transition-all ease-linear`}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
     </div>
   );
 };

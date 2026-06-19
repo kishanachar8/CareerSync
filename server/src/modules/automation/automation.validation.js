@@ -1,19 +1,18 @@
 import Joi from 'joi';
 
-const PORTALS = ['naukri', 'linkedin'];
+const PORTALS = ['naukri'];
 
 export const saveCredentialsSchema = Joi.object({
   portal:   Joi.string().valid(...PORTALS).required(),
   username: Joi.string().min(3).max(200).required(),
-  password: Joi.string().min(4).max(200).required(),
+  // Password is validated in the controller (Naukri requires it, Indeed/Google OAuth does not).
+  // Joi.when() with abortEarly:false evaluates both branches, causing false errors here.
+  password: Joi.string().allow('').max(200).optional().default(''),
   preferences: Joi.object({
-    // Naukri
     noticePeriodDays:  Joi.number().integer().min(0).max(180).default(30),
     currentCtcLakhs:   Joi.number().min(0).max(999).default(0),
     expectedCtcLakhs:  Joi.number().min(0).max(999).default(0),
     coverNote:         Joi.string().allow('').max(1000).default(''),
-    // LinkedIn
-    phoneNumber:       Joi.string().allow('').max(30).default(''),
     yearsOfExperience: Joi.number().integer().min(0).max(60).default(0),
   }).default({}),
 });

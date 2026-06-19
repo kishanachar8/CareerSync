@@ -6,11 +6,13 @@ import connectDB from './src/config/db.js';
 import redis from './src/config/redis.js';
 import logger from './src/utils/logger.js';
 import env from './src/config/env.js';
+import Job from './src/models/Job.js';
 import browserManager from './src/automation/browser/browserManager.js';
 import { startJobDiscoveryWorker, stopJobDiscoveryWorker } from './src/workers/jobDiscovery.worker.js';
 import { startResumeAnalysisWorker, stopResumeAnalysisWorker } from './src/workers/resumeAnalysis.worker.js';
 import { startAutoApplyWorker, stopAutoApplyWorker } from './src/workers/autoApply.worker.js';
 import { startNotificationWorker, stopNotificationWorker } from './src/workers/notification.worker.js';
+import { startGmailSyncCron, stopGmailSyncCron } from './src/cron/gmailSyncCron.js';
 
 // ─── Kill processes holding a port (Windows) ──────────────────────────────────
 
@@ -78,6 +80,17 @@ const bindServer = (server, port) =>
 
 const start = async () => {
   await connectDB();
+
+  // One-time cleanup: remove all Himalayas jobs (provider removed, keep DB clean)
+  try {
+    const removed = await Job.deleteMany({ source: 'himalayas' });
+    if (removed.deletedCount > 0) {
+      logger.info(`[Cleanup] Removed ${removed.deletedCount} Himalayas job(s) from DB`);
+    }
+  } catch (err) {
+    logger.warn(`[Cleanup] Could not remove Himalayas jobs: ${err.message}`);
+  }
+
   await redis.ping();
   logger.info('Redis ping OK');
 
@@ -99,7 +112,8 @@ const start = async () => {
   startResumeAnalysisWorker();
   startAutoApplyWorker();
   startNotificationWorker();
-  logger.info('Workers initialised');
+  await startGmailSyncCron();
+  logger.info('Workers + cron initialised');
 
   // ─── Graceful shutdown ───────────────────────────────────────────────────────
 
@@ -118,6 +132,7 @@ const start = async () => {
         stopResumeAnalysisWorker(),
         stopAutoApplyWorker(),
         stopNotificationWorker(),
+        stopGmailSyncCron(),
       ]);
       await browserManager.shutdown();
       await redis.quit();

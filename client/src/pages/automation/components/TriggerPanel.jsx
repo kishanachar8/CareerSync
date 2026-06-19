@@ -1,50 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { startAutoApply, resetTrigger } from '../../../features/automation/automationSlice.js';
+import { startAutoApply, resetTrigger, fetchCredentials } from '../../../features/automation/automationSlice.js';
 import { fetchResumes } from '../../../features/resume/resumeSlice.js';
 import { showToast } from '../../../features/ui/uiSlice.js';
 import Button from '../../../components/ui/Button.jsx';
 import Card from '../../../components/ui/Card.jsx';
 import { Zap, CheckCircle2, AlertCircle } from 'lucide-react';
 
-const PORTALS = [
-  {
-    id: 'naukri',
-    label: 'Naukri',
-    logo: 'N',
-    logoColor: 'text-[#FF7555]',
-    description: 'Searches Naukri and applies directly. Opens company-website jobs in separate tabs for you to apply manually.',
-    placeholder: 'e.g. React Developer, Node.js, Full Stack',
+const PORTAL_CONFIGS = {
+  naukri: {
+    label:               'Naukri',
+    description:         'Searches Naukri and applies directly. Opens company-website jobs in separate tabs for you to apply manually.',
+    placeholder:         'e.g. React Developer, Node.js, Full Stack',
     locationPlaceholder: 'Bangalore, Mumbai… (leave blank for any)',
-    resumeLabel: 'Resume (for CareerSync record — Naukri uses your saved profile)',
+    resumeLabel:         'Resume (for CareerSync record — Naukri uses your saved profile)',
   },
-  {
-    id: 'linkedin',
-    label: 'LinkedIn',
-    logo: 'in',
-    logoColor: 'text-[#0A66C2]',
-    description: 'Searches LinkedIn Easy Apply jobs only — every result has the in-app apply modal, no external redirects.',
-    placeholder: 'e.g. Software Engineer, Product Manager',
-    locationPlaceholder: 'Bangalore, India… (leave blank for worldwide)',
-    resumeLabel: 'Resume (for CareerSync record — LinkedIn uses your uploaded profile resume)',
-  },
-];
+};
 
-const TriggerPanel = ({ onRunStarted }) => {
+const TriggerPanel = ({ portal = 'naukri', onRunStarted }) => {
   const dispatch = useDispatch();
   const { credentials, triggerStatus, triggerError, lastTriggered } = useSelector((s) => s.automation);
   const { resumes } = useSelector((s) => s.resume);
 
-  const [portal, setPortal] = useState('naukri');
   const [form, setForm] = useState({ keywords: '', location: '', resumeId: '', maxJobs: 10, freshness: 0 });
 
-  const portalCfg  = PORTALS.find((p) => p.id === portal);
-  const hasCreds   = !!credentials[portal];
+  const portalCfg = PORTAL_CONFIGS[portal] || PORTAL_CONFIGS.naukri;
+  const hasCreds  = !!credentials[portal];
 
   useEffect(() => {
+    dispatch(fetchCredentials(portal));
     if (!resumes.length) dispatch(fetchResumes());
     return () => dispatch(resetTrigger());
-  }, [dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [dispatch, portal]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-select default resume
   useEffect(() => {
@@ -82,28 +69,8 @@ const TriggerPanel = ({ onRunStarted }) => {
       </Card.Header>
 
       <Card.Body className="space-y-4">
-        {/* Portal tabs */}
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
-          {PORTALS.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setPortal(p.id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all ${
-                portal === p.id
-                  ? 'bg-white shadow-sm text-gray-900'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              <span className={`font-bold text-sm leading-none ${p.logoColor}`}>{p.logo}</span>
-              {p.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Portal description */}
         <p className="text-xs text-gray-500">{portalCfg.description}</p>
 
-        {/* No credentials warning */}
         {!hasCreds && (
           <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
             <AlertCircle size={13} className="mt-0.5 shrink-0" />

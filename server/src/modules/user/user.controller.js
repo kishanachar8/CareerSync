@@ -8,6 +8,9 @@ import {
   addExperienceService,
   updateExperienceService,
   deleteExperienceService,
+  addEducationService,
+  updateEducationService,
+  deleteEducationService,
   updatePreferencesService,
   uploadAvatarService,
   deleteAvatarService,
@@ -49,6 +52,24 @@ export const deleteExperience = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, user, 'Experience removed'));
 });
 
+// POST /api/v1/users/me/education
+export const addEducation = asyncHandler(async (req, res) => {
+  const user = await addEducationService(req.user.id, req.body);
+  res.status(201).json(new ApiResponse(201, user, 'Education added'));
+});
+
+// PUT /api/v1/users/me/education/:eduId
+export const updateEducation = asyncHandler(async (req, res) => {
+  const user = await updateEducationService(req.user.id, req.params.eduId, req.body);
+  res.status(200).json(new ApiResponse(200, user, 'Education updated'));
+});
+
+// DELETE /api/v1/users/me/education/:eduId
+export const deleteEducation = asyncHandler(async (req, res) => {
+  const user = await deleteEducationService(req.user.id, req.params.eduId);
+  res.status(200).json(new ApiResponse(200, user, 'Education removed'));
+});
+
 // PATCH /api/v1/users/me/preferences
 export const updatePreferences = asyncHandler(async (req, res) => {
   const user = await updatePreferencesService(req.user.id, req.body);
@@ -58,7 +79,7 @@ export const updatePreferences = asyncHandler(async (req, res) => {
 // PATCH /api/v1/users/me/avatar
 export const uploadAvatar = asyncHandler(async (req, res) => {
   if (!req.file) throw new ApiError(400, 'No image file provided');
-  const user = await uploadAvatarService(req.user.id, req.file.buffer);
+  const user = await uploadAvatarService(req.user.id, req.file.buffer, req.file.mimetype);
   res.status(200).json(new ApiResponse(200, user, 'Avatar updated'));
 });
 

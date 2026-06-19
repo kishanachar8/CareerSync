@@ -6,6 +6,7 @@ import {
   updateProfileSchema,
   updateSkillsSchema,
   experienceSchema,
+  educationSchema,
   updatePreferencesSchema,
 } from './user.validation.js';
 import {
@@ -15,6 +16,9 @@ import {
   addExperience,
   updateExperience,
   deleteExperience,
+  addEducation,
+  updateEducation,
+  deleteEducation,
   updatePreferences,
   uploadAvatar,
   deleteAvatar,
@@ -36,5 +40,10 @@ router.delete('/me/avatar',                                           deleteAvat
 router.post('/me/experience',          validate(experienceSchema),    addExperience);
 router.put('/me/experience/:expId',    validate(experienceSchema),    updateExperience);
 router.delete('/me/experience/:expId',                                deleteExperience);
+
+// Education sub-resource
+router.post('/me/education',           validate(educationSchema),     addEducation);
+router.put('/me/education/:eduId',     validate(educationSchema),     updateEducation);
+router.delete('/me/education/:eduId',                                 deleteEducation);
 
 export default router;

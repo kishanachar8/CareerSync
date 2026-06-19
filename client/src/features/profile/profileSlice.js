@@ -96,6 +96,42 @@ export const updatePreferences = createAsyncThunk(
   },
 );
 
+export const addEducation = createAsyncThunk(
+  'profile/addEducation',
+  async (eduData, { rejectWithValue }) => {
+    try {
+      const { data } = await userApi.addEducation(eduData);
+      return data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to add education');
+    }
+  },
+);
+
+export const updateEducation = createAsyncThunk(
+  'profile/updateEducation',
+  async ({ eduId, eduData }, { rejectWithValue }) => {
+    try {
+      const { data } = await userApi.updateEducation(eduId, eduData);
+      return data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to update education');
+    }
+  },
+);
+
+export const deleteEducation = createAsyncThunk(
+  'profile/deleteEducation',
+  async (eduId, { rejectWithValue }) => {
+    try {
+      const { data } = await userApi.deleteEducation(eduId);
+      return data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to remove education');
+    }
+  },
+);
+
 export const uploadAvatar = createAsyncThunk(
   'profile/uploadAvatar',
   async (formData, { rejectWithValue }) => {
@@ -143,8 +179,10 @@ const profileSlice = createSlice({
 
     // All mutating operations share saveStatus / saveError
     const saveThunks = [
-      updateProfile, updateSkills, addExperience,
-      updateExperience, deleteExperience, updatePreferences, uploadAvatar,
+      updateProfile, updateSkills,
+      addExperience, updateExperience, deleteExperience,
+      addEducation, updateEducation, deleteEducation,
+      updatePreferences, uploadAvatar,
     ];
 
     saveThunks.forEach((thunk) => {

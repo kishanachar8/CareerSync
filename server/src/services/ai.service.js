@@ -1,27 +1,40 @@
 import crypto from 'crypto';
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import env from '../config/env.js';
 import redis from '../config/redis.js';
 import { extractSkills } from '../utils/skillExtractor.js';
 import logger from '../utils/logger.js';
 
 const CACHE_TTL = 24 * 60 * 60; // 24 hours
+const MODEL     = 'gemini-1.5-flash';
 
 const getClient = () => {
-  if (!env.OPENAI_API_KEY) {
-    throw new Error('OpenAI API key is not configured. Add OPENAI_API_KEY to your .env file.');
+  if (!env.GEMINI_API_KEY) {
+    throw new Error('Gemini API key is not configured. Add GEMINI_API_KEY to your .env file.');
   }
-  return new OpenAI({ apiKey: env.OPENAI_API_KEY });
+  return new GoogleGenerativeAI(env.GEMINI_API_KEY);
 };
 
-function friendlyOpenAIError(err) {
+function friendlyGeminiError(err) {
   const msg = err.message || '';
-  if (err.status === 429 || msg.includes('quota') || msg.includes('exceeded'))
-    return 'OpenAI quota exceeded. Please check your billing at platform.openai.com or add credits.';
-  if (err.status === 401 || msg.includes('Incorrect API key') || msg.includes('invalid_api_key'))
-    return 'Invalid OpenAI API key. Update OPENAI_API_KEY in your .env file.';
-  if (err.status === 503 || msg.includes('overloaded'))
-    return 'OpenAI is currently overloaded. Please try again in a few seconds.';
+  const lower = msg.toLowerCase();
+  logger.warn(`[AI] Raw Gemini error: ${msg}`);
+
+  // Invalid / malformed API key — check BEFORE quota so a bad key isn't reported as quota
+  if (
+    lower.includes('api key not valid') ||
+    lower.includes('api_key_invalid') ||
+    lower.includes('invalid_argument') ||
+    lower.includes('invalid api key') ||
+    (msg.includes('400') && lower.includes('api key'))
+  ) return 'Invalid Gemini API key. Check that GEMINI_API_KEY in your .env starts with "AIza" and was copied from aistudio.google.com.';
+
+  if (msg.includes('429') || lower.includes('quota') || lower.includes('rate limit') || lower.includes('resource_exhausted'))
+    return 'Gemini quota exceeded. Please check your usage at aistudio.google.com or wait before retrying.';
+
+  if (msg.includes('503') || lower.includes('unavailable') || lower.includes('overloaded'))
+    return 'Gemini is currently overloaded. Please try again in a few seconds.';
+
   return `AI service error: ${msg}`;
 }
 
@@ -41,6 +54,28 @@ const setCache = async (key, value) => {
   } catch { /* non-fatal */ }
 };
 
+async function generateJSON(prompt, { temperature = 0.3, maxOutputTokens = 1000 } = {}) {
+  const genAI = getClient();
+  // Use stable v1 endpoint — v1beta doesn't expose gemini-1.5-flash for all API keys
+  const model = genAI.getGenerativeModel(
+    {
+      model: MODEL,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature,
+        maxOutputTokens,
+      },
+    },
+    { apiVersion: 'v1' },
+  );
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
+  // Strip potential markdown code fences before parsing
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error(`Model did not return JSON. Raw response: ${text.slice(0, 200)}`);
+  return JSON.parse(jsonMatch[0]);
+}
+
 // ─── Resume Analysis ──────────────────────────────────────────────────────────
 
 export const analyseResume = async ({ resumeText, jobTitle, jobDescription, jobSkills = [] }) => {
@@ -48,11 +83,9 @@ export const analyseResume = async ({ resumeText, jobTitle, jobDescription, jobS
   const cached = await getCached(key);
   if (cached) return { ...cached, cached: true };
 
-  if (!env.OPENAI_API_KEY) {
+  if (!env.GEMINI_API_KEY) {
     return keywordFallback(resumeText, jobSkills, null);
   }
-
-  const openai = getClient();
 
   const prompt = `You are an expert ATS (Applicant Tracking System) and technical recruiter.
 
@@ -79,21 +112,13 @@ Return exactly this JSON structure:
 }`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-      temperature: 0.3,
-      max_tokens: 1000,
-    });
-
-    const result = JSON.parse(completion.choices[0].message.content);
+    const result = await generateJSON(prompt, { temperature: 0.3, maxOutputTokens: 1000 });
     await setCache(key, result);
     logger.info(`[AI] Resume analysis complete — score: ${result.matchScore}`);
     return result;
   } catch (err) {
-    const reason = friendlyOpenAIError(err);
-    logger.warn(`[AI] analyseResume OpenAI failed — ${reason}`);
+    const reason = friendlyGeminiError(err);
+    logger.warn(`[AI] analyseResume Gemini failed — ${reason}`);
     return keywordFallback(resumeText, jobSkills, reason);
   }
 };
@@ -112,11 +137,9 @@ export const generateCoverLetter = async ({
   const cached = await getCached(key);
   if (cached) return { ...cached, cached: true };
 
-  if (!env.OPENAI_API_KEY) {
-    throw new Error('OpenAI API key is required for cover letter generation.');
+  if (!env.GEMINI_API_KEY) {
+    throw new Error('Gemini API key is required for cover letter generation.');
   }
-
-  const openai = getClient();
 
   const toneGuide = {
     professional: 'formal, confident, and polished',
@@ -144,21 +167,13 @@ Guidelines:
 Respond with JSON only: { "coverLetter": "<the full cover letter text>" }`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-      temperature: 0.7,
-      max_tokens: 800,
-    });
-
-    const result = JSON.parse(completion.choices[0].message.content);
+    const result = await generateJSON(prompt, { temperature: 0.7, maxOutputTokens: 800 });
     await setCache(key, result);
     logger.info(`[AI] Cover letter generated for ${userName} → ${jobTitle} at ${company}`);
     return result;
   } catch (err) {
     logger.error(`[AI] generateCoverLetter failed: ${err.message}`);
-    throw new Error(friendlyOpenAIError(err));
+    throw new Error(friendlyGeminiError(err));
   }
 };
 
@@ -169,11 +184,9 @@ export const analyseSkillGap = async ({ currentSkills, targetRole, jobDescriptio
   const cached = await getCached(key);
   if (cached) return { ...cached, cached: true };
 
-  if (!env.OPENAI_API_KEY) {
-    throw new Error('OpenAI API key is required for skill gap analysis.');
+  if (!env.GEMINI_API_KEY) {
+    throw new Error('Gemini API key is required for skill gap analysis.');
   }
-
-  const openai = getClient();
 
   const prompt = `You are a technical career advisor helping software professionals grow.
 
@@ -196,21 +209,13 @@ Respond with JSON only:
 }`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-      temperature: 0.4,
-      max_tokens: 1200,
-    });
-
-    const result = JSON.parse(completion.choices[0].message.content);
+    const result = await generateJSON(prompt, { temperature: 0.4, maxOutputTokens: 1200 });
     await setCache(key, result);
     logger.info(`[AI] Skill gap analysis done — readiness: ${result.readinessScore}%`);
     return result;
   } catch (err) {
     logger.error(`[AI] analyseSkillGap failed: ${err.message}`);
-    throw new Error(friendlyOpenAIError(err));
+    throw new Error(friendlyGeminiError(err));
   }
 };
 
@@ -225,11 +230,11 @@ function keywordFallback(resumeText, jobSkills, errorReason = null) {
 
   const summaryNote = errorReason
     ? `Keyword-based analysis only (AI unavailable: ${errorReason})`
-    : 'Keyword-based analysis only (no OpenAI API key configured).';
+    : 'Keyword-based analysis only (no Gemini API key configured).';
 
   const improvementNote = errorReason
     ? `AI analysis unavailable: ${errorReason}`
-    : 'Add OPENAI_API_KEY to your .env for detailed AI analysis';
+    : 'Add GEMINI_API_KEY to your .env for detailed AI analysis';
 
   return {
     matchScore,

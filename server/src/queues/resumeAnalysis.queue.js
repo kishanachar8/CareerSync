@@ -14,7 +14,7 @@ const resumeAnalysisQueue = new Queue(QUEUE_NAMES.RESUME_ANALYSIS, {
 
 /**
  * Queue an AI analysis job for a resume against a specific job posting.
- * The worker will use OpenAI to produce a match score + tailored suggestions.
+ * The worker will use Gemini to produce a match score + tailored suggestions.
  */
 export const enqueueResumeAnalysis = (resumeId, jobId, userId) =>
   resumeAnalysisQueue.add(

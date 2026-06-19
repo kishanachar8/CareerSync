@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import User from '../../models/User.js';
 import ApiError from '../../utils/ApiError.js';
-import { streamToCloudinary } from '../../middleware/upload.js';
+import { uploadFile } from '../../middleware/upload.js';
 
 // ─── Get Profile ──────────────────────────────────────────────────────────────
 export const getProfileService = async (userId) => {
@@ -130,12 +130,61 @@ export const updatePreferencesService = async (userId, prefs) => {
   return user;
 };
 
+// ─── Add Education ────────────────────────────────────────────────────────────
+export const addEducationService = async (userId, eduData) => {
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $push: { education: { $each: [eduData], $position: 0 } } },
+    { new: true, runValidators: true },
+  );
+  if (!user) throw new ApiError(404, 'User not found');
+  return user;
+};
+
+// ─── Update Education ─────────────────────────────────────────────────────────
+export const updateEducationService = async (userId, eduId, eduData) => {
+  if (!mongoose.Types.ObjectId.isValid(eduId)) throw new ApiError(400, 'Invalid education ID');
+
+  const updateFields = {};
+  Object.entries(eduData).forEach(([key, val]) => {
+    updateFields[`education.$[edu].${key}`] = val;
+  });
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $set: updateFields },
+    {
+      new: true,
+      arrayFilters: [{ 'edu._id': new mongoose.Types.ObjectId(eduId) }],
+      runValidators: true,
+    },
+  );
+  if (!user) throw new ApiError(404, 'User not found');
+  const exists = user.education.some((e) => e._id.toString() === eduId);
+  if (!exists) throw new ApiError(404, 'Education entry not found');
+  return user;
+};
+
+// ─── Delete Education ─────────────────────────────────────────────────────────
+export const deleteEducationService = async (userId, eduId) => {
+  if (!mongoose.Types.ObjectId.isValid(eduId)) throw new ApiError(400, 'Invalid education ID');
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $pull: { education: { _id: new mongoose.Types.ObjectId(eduId) } } },
+    { new: true },
+  );
+  if (!user) throw new ApiError(404, 'User not found');
+  return user;
+};
+
 // ─── Upload Avatar ────────────────────────────────────────────────────────────
-export const uploadAvatarService = async (userId, fileBuffer) => {
-  const result = await streamToCloudinary(fileBuffer, {
+export const uploadAvatarService = async (userId, fileBuffer, mimetype) => {
+  const result = await uploadFile(fileBuffer, {
     folder: 'careersync/avatars',
-    public_id: `avatar_${userId}`, // deterministic — overwrites previous avatar
+    public_id: `avatar_${userId}`,
     resource_type: 'image',
+    mimetype,
     transformation: [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }],
     overwrite: true,
   });

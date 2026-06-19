@@ -4,7 +4,7 @@ export const EMPLOYMENT_TYPES = ['full-time', 'part-time', 'contract', 'internsh
 
 export const JOB_SOURCES = [
   'naukri', 'linkedin', 'indeed', 'foundit', 'wellfound',
-  'adzuna', 'jooble', 'remoteok', 'arbeitnow', 'himalayas',
+  'adzuna', 'jooble', 'remoteok', 'arbeitnow',
   'jobicy', 'themuse', 'findwork', 'reed', 'manual',
 ];
 
