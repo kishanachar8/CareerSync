@@ -55,14 +55,14 @@ const ProfileHero = ({ profile, completion }) => {
     completion.score >= 50 ? 'bg-amber-500' : 'bg-red-500';
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-elevated rounded-2xl border border-line shadow-sm overflow-hidden">
       {/* Banner */}
       <div className="h-28 bg-gradient-to-r from-primary-600 via-primary-500 to-violet-500" />
 
       <div className="px-6 pb-5">
         {/* Avatar row */}
         <div className="flex items-end justify-between -mt-12 mb-4">
-          <div className="w-24 h-24 rounded-2xl bg-white border-4 border-white shadow-md flex items-center justify-center overflow-hidden shrink-0">
+          <div className="w-24 h-24 rounded-2xl bg-elevated border-4 border-elevated shadow-md flex items-center justify-center overflow-hidden shrink-0">
             {avatarSrc ? (
               <img
                 src={avatarSrc}
@@ -84,16 +84,16 @@ const ProfileHero = ({ profile, completion }) => {
 
         {/* Name + headline */}
         <div className="mb-3">
-          <h2 className="text-xl font-bold text-gray-900">{profile.name}</h2>
+          <h2 className="text-xl font-bold text-ink">{profile.name}</h2>
           {profile.profile?.headline ? (
-            <p className="text-sm text-gray-600 mt-0.5">{profile.profile.headline}</p>
+            <p className="text-sm text-ink-muted mt-0.5">{profile.profile.headline}</p>
           ) : (
-            <p className="text-xs text-gray-400 mt-0.5 italic">No headline — add one in Personal Info</p>
+            <p className="text-xs text-ink-muted/70 mt-0.5 italic">No headline — add one in Personal Info</p>
           )}
         </div>
 
         {/* Meta chips */}
-        <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-4">
+        <div className="flex flex-wrap gap-3 text-xs text-ink-muted mb-4">
           {profile.profile?.location && (
             <span className="flex items-center gap-1"><MapPin size={12} />{profile.profile.location}</span>
           )}
@@ -122,13 +122,13 @@ const ProfileHero = ({ profile, completion }) => {
 
         {/* Completion bar */}
         <div>
-          <div className="flex justify-between text-xs text-gray-400 mb-1">
+          <div className="flex justify-between text-xs text-ink-muted/70 mb-1">
             <span>Profile strength</span>
             {completion.missing.length > 0 && (
               <span>Add: {completion.missing.slice(0, 2).join(', ')}{completion.missing.length > 2 ? ` +${completion.missing.length - 2}` : ''}</span>
             )}
           </div>
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-2 bg-elevated-2 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${barColor}`}
               style={{ width: `${completion.score}%` }}
@@ -167,9 +167,10 @@ const Profile = () => {
 
   if (fetchStatus === 'failed') {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-red-500 text-sm">{error || 'Failed to load profile'}</p>
+      <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/80 dark:bg-rose-950/30 mx-auto max-w-xl px-6">
+        <p className="text-rose-600 dark:text-rose-300 text-sm">{error || 'Failed to load profile'}</p>
         <button
+          type="button"
           onClick={() => dispatch(fetchProfile())}
           className="mt-4 text-sm text-primary-600 hover:underline"
         >
@@ -182,22 +183,23 @@ const Profile = () => {
   const completion = calcCompletion(profile);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="max-w-5xl mx-auto space-y-5">
       {/* Hero */}
       <ProfileHero profile={profile} completion={completion} />
 
       {/* Tab bar */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
+      <div className="bg-elevated rounded-xl border border-line shadow-sm">
         <div className="flex overflow-x-auto scrollbar-none">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
+              type="button"
               onClick={() => setActiveTab(id)}
               className={[
                 'flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors',
                 activeTab === id
                   ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200',
+                  : 'border-transparent text-ink-muted hover:text-ink hover:border-line',
               ].join(' ')}
             >
               <Icon size={14} />

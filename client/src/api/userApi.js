@@ -32,5 +32,3 @@ export const uploadAvatar = (formData) =>
   axiosInstance.patch('/users/me/avatar', formData, {
     headers: { 'Content-Type': undefined }, // let the browser set multipart boundary
   });
-
-export const deleteAvatar = () => axiosInstance.delete('/users/me/avatar');

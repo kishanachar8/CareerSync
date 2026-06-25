@@ -34,13 +34,13 @@ const SkillGap = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
           <Brain size={24} className="text-primary-600" />
           Skill Gap Analysis
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-ink-muted mt-1">
           Discover what skills you need to land your target role, and how to get there.
         </p>
       </div>
@@ -50,7 +50,7 @@ const SkillGap = () => {
           <AlertCircle size={15} className="mt-0.5 shrink-0" />
           <span>
             Your profile has no skills listed. The analysis will be less accurate.{' '}
-            <Link to="/profile" className="underline font-medium hover:text-amber-900">
+            <Link to="/profile" className="underline font-medium hover:text-amber-900 dark:hover:text-amber-400">
               Add skills in your profile
             </Link>{' '}
             for better results.
@@ -61,23 +61,23 @@ const SkillGap = () => {
       <Card>
         <Card.Body className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Target Role</label>
+            <label className="block text-sm font-medium text-ink mb-1.5">Target Role</label>
             <input
               type="text"
               value={targetRole}
               onChange={(e) => setTargetRole(e.target.value)}
               placeholder="e.g. Senior Full Stack Engineer, ML Engineer…"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Reference Job <span className="text-gray-400 font-normal">(optional — improves accuracy)</span>
+              Reference Job <span className="text-ink-muted/70 font-normal">(optional — improves accuracy)</span>
             </label>
             <select
               value={jobId}
               onChange={(e) => setJobId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="">None — use role name only</option>
               {jobs.map((j) => <option key={j._id} value={j._id}>{j.title} — {j.company}</option>)}
@@ -107,11 +107,11 @@ const SkillGap = () => {
             <Card.Body className="flex items-center gap-4">
               <div className="text-center">
                 <div className="text-4xl font-bold text-primary-600">{skillGap.readinessScore}%</div>
-                <div className="text-xs text-gray-500 mt-0.5">Readiness</div>
+                <div className="text-xs text-ink-muted mt-0.5">Readiness</div>
               </div>
-              <div className="border-l border-gray-200 pl-4">
-                <p className="font-medium text-gray-800 text-sm">Time to Ready</p>
-                <p className="text-gray-600 text-sm">{skillGap.timeToReady || 'Varies by effort'}</p>
+              <div className="border-l border-line pl-4">
+                <p className="font-medium text-ink text-sm">Time to Ready</p>
+                <p className="text-ink-muted text-sm">{skillGap.timeToReady || 'Varies by effort'}</p>
               </div>
             </Card.Body>
           </Card>
@@ -158,7 +158,7 @@ const SkillGap = () => {
           {skillGap.learningPath?.length > 0 && (
             <Card>
               <Card.Header>
-                <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                <h2 className="text-sm font-semibold text-ink flex items-center gap-1.5">
                   <BookOpen size={15} />Learning Path
                 </h2>
               </Card.Header>
@@ -174,10 +174,10 @@ const SkillGap = () => {
                           </span>
                         </div>
                         {item.resources?.length > 0 && (
-                          <p className="text-xs text-gray-500 mt-0.5">{item.resources.join(' · ')}</p>
+                          <p className="text-xs text-ink-muted mt-0.5">{item.resources.join(' · ')}</p>
                         )}
                       </div>
-                      <span className="text-xs text-gray-400 shrink-0">~{item.estimatedWeeks}w</span>
+                      <span className="text-xs text-ink-muted/70 shrink-0">~{item.estimatedWeeks}w</span>
                     </div>
                   ))}
                 </div>

@@ -47,25 +47,25 @@ const ApplicationCard = ({ application }) => {
   };
 
   return (
-    <div className="group bg-white border border-surface-200 rounded-2xl hover:shadow-card-hover hover:border-primary-100 transition-all duration-200">
-      <div className="flex items-start gap-3.5 p-4">
+    <div className="group bg-elevated border border-line rounded-2xl hover:shadow-card-hover hover:border-primary-200 dark:hover:border-primary-800 transition-all duration-200">
+      <div className="flex items-start gap-3 sm:gap-3.5 p-3.5 sm:p-4">
         {/* Company avatar */}
-        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm`}>
+        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm`}>
           {initials}
         </div>
 
         {/* Main info */}
         <div className="flex-1 min-w-0">
           <Link to={`/applications/${application._id}`} className="block group/link">
-            <h3 className="font-semibold text-gray-900 group-hover/link:text-primary-700 transition-colors text-[15px] truncate">
+            <h3 className="font-semibold text-ink group-hover/link:text-primary-600 transition-colors text-[15px] truncate">
               {job?.title || 'Unknown Position'}
             </h3>
-            <p className="text-sm text-gray-500 truncate mt-0.5">
-              {company !== 'Unknown' ? company : <span className="text-gray-400 italic">Unknown company</span>}
+            <p className="text-sm text-ink-muted truncate mt-0.5">
+              {company !== 'Unknown' ? company : <span className="text-ink-muted/70 italic">Unknown company</span>}
             </p>
           </Link>
 
-          <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-400">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 mt-2 text-xs text-ink-muted">
             {job?.location && (
               <span className="flex items-center gap-1"><MapPin size={11} />{job.location}</span>
             )}
@@ -89,7 +89,7 @@ const ApplicationCard = ({ application }) => {
           </div>
 
           {application.notes && (
-            <p className="mt-2 text-xs text-gray-400 line-clamp-1 italic">"{application.notes}"</p>
+            <p className="mt-2 text-xs text-ink-muted line-clamp-1 italic">"{application.notes}"</p>
           )}
         </div>
 
@@ -100,24 +100,26 @@ const ApplicationCard = ({ application }) => {
           {/* Status changer dropdown */}
           <div className="relative">
             <button
+              type="button"
               onClick={() => setOpen((v) => !v)}
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors px-2 py-1 rounded-lg hover:bg-surface-100"
+              className="flex items-center gap-1 text-xs text-ink-muted hover:text-ink transition-colors px-2 py-1 rounded-lg hover:bg-elevated-2"
             >
-              Change <ChevronDown size={11} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+              <span className="hidden sm:inline">Change</span> <ChevronDown size={11} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
 
             {open && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-                <div className="absolute right-0 mt-1 w-40 bg-white border border-surface-200 rounded-xl shadow-lg z-20 overflow-hidden animate-scale-in">
+                <div className="absolute right-0 mt-1 w-40 bg-elevated border border-line rounded-xl shadow-lg z-20 overflow-hidden animate-scale-in">
                   {ALL_STATUSES.map((s) => (
                     <button
                       key={s}
+                      type="button"
                       onClick={() => handleStatusChange(s)}
                       className={`w-full text-left px-3 py-2 text-xs transition-colors capitalize ${
                         s === application.status
-                          ? 'bg-primary-50 text-primary-700 font-semibold'
-                          : 'text-gray-700 hover:bg-surface-50'
+                          ? 'bg-primary-50 text-primary-700 dark:bg-primary-950/40 dark:text-primary-300 font-semibold'
+                          : 'text-ink hover:bg-elevated-2'
                       }`}
                     >
                       {s.replace('_', ' ')}

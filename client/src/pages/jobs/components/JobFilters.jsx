@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setFilters } from '../../../features/jobs/jobsSlice.js';
 import Button from '../../../components/ui/Button.jsx';
 import { EMPLOYMENT_TYPES } from '../../../utils/constants.js';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 
 const POSTED_WITHIN = [
   { label: 'Any time',   value: '' },
@@ -37,23 +37,20 @@ const JobFilters = ({ onClose }) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-          <SlidersHorizontal size={16} />
-          Filters
-        </h3>
-        {onClose && (
-          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={18} />
-          </button>
-        )}
-      </div>
+      {onClose && (
+        <div className="flex items-center justify-between sm:hidden">
+          <h3 className="font-semibold text-ink flex items-center gap-2">
+            <SlidersHorizontal size={16} />
+            Filters
+          </h3>
+        </div>
+      )}
 
       {/* Sort */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Sort by</label>
+        <label className="block text-sm font-medium text-ink mb-1.5">Sort by</label>
         <select
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3 py-2 border border-line bg-elevated text-ink rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           {...register('sort')}
         >
           <option value="latest">Latest</option>
@@ -63,16 +60,16 @@ const JobFilters = ({ onClose }) => {
 
       {/* Employment type */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Job type</label>
+        <label className="block text-sm font-medium text-ink mb-1.5">Job type</label>
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input type="radio" value="" className="text-primary-600" {...register('employmentType')} />
-            <span className="text-gray-700">All types</span>
+            <span className="text-ink-muted">All types</span>
           </label>
           {EMPLOYMENT_TYPES.map((t) => (
             <label key={t} className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="radio" value={t} className="text-primary-600" {...register('employmentType')} />
-              <span className="text-gray-700 capitalize">{t.replace('-', ' ')}</span>
+              <span className="text-ink-muted capitalize">{t.replace('-', ' ')}</span>
             </label>
           ))}
         </div>
@@ -80,12 +77,12 @@ const JobFilters = ({ onClose }) => {
 
       {/* Posted within */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Posted within</label>
+        <label className="block text-sm font-medium text-ink mb-1.5">Posted within</label>
         <div className="space-y-2">
           {POSTED_WITHIN.map(({ label, value }) => (
             <label key={label} className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="radio" value={value} className="text-primary-600" {...register('postedWithin')} />
-              <span className="text-gray-700">{label}</span>
+              <span className="text-ink-muted">{label}</span>
             </label>
           ))}
         </div>

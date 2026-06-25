@@ -16,7 +16,7 @@ const Tab = ({ active, onClick, children }) => (
     className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
       active
         ? 'border-primary-600 text-primary-600'
-        : 'border-transparent text-gray-500 hover:text-gray-700'
+        : 'border-transparent text-ink-muted hover:text-ink'
     }`}
   >
     {children}
@@ -41,18 +41,18 @@ const ResumePreviewModal = ({ resumeId, onClose }) => {
       ) : (
         <div className="space-y-4">
           {/* Meta */}
-          <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
+          <div className="flex items-start gap-3 p-4 bg-elevated-2 rounded-xl">
             <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
               <FileText size={20} className="text-red-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-900 truncate">{resume.fileName}</p>
+              <p className="font-medium text-ink truncate">{resume.fileName}</p>
               <div className="flex flex-wrap gap-3 mt-1">
-                <span className="flex items-center gap-1 text-xs text-gray-500">
+                <span className="flex items-center gap-1 text-xs text-ink-muted">
                   <Calendar size={11} />
                   {formatDate(resume.createdAt)}
                 </span>
-                <span className="flex items-center gap-1 text-xs text-gray-500">
+                <span className="flex items-center gap-1 text-xs text-ink-muted">
                   <HardDrive size={11} />
                   {formatBytes(resume.fileSize)}
                 </span>
@@ -70,7 +70,7 @@ const ResumePreviewModal = ({ resumeId, onClose }) => {
           </div>
 
           {/* Tabs */}
-          <div className="border-b border-gray-200 flex gap-1">
+          <div className="border-b border-line flex gap-1">
             <Tab active={tab === 'info'} onClick={() => setTab('info')}>Skills &amp; Info</Tab>
             <Tab active={tab === 'text'} onClick={() => setTab('text')}>Extracted Text</Tab>
           </div>
@@ -80,7 +80,7 @@ const ResumePreviewModal = ({ resumeId, onClose }) => {
             <div>
               {resume.extractedSkills?.length > 0 ? (
                 <>
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                  <p className="text-xs font-medium text-ink-muted uppercase tracking-wide mb-2">
                     Extracted Skills ({resume.extractedSkills.length})
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -90,7 +90,7 @@ const ResumePreviewModal = ({ resumeId, onClose }) => {
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-gray-400 italic py-4 text-center">
+                <p className="text-sm text-ink-muted/70 italic py-4 text-center">
                   No skills were automatically extracted from this resume.
                   <br />
                   AI-powered extraction will be available in a future update.
@@ -103,11 +103,11 @@ const ResumePreviewModal = ({ resumeId, onClose }) => {
           {tab === 'text' && (
             <div>
               {resume.extractedText ? (
-                <pre className="text-xs text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-72 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed">
+                <pre className="text-xs text-ink bg-elevated-2 border border-line rounded-lg p-4 max-h-72 overflow-y-auto whitespace-pre-wrap font-mono leading-relaxed">
                   {resume.extractedText}
                 </pre>
               ) : (
-                <p className="text-sm text-gray-400 italic py-4 text-center">
+                <p className="text-sm text-ink-muted/70 italic py-4 text-center">
                   No text could be extracted from this PDF.
                 </p>
               )}

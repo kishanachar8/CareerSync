@@ -30,23 +30,23 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md', hideClose = fals
   return createPortal(
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div
-        className={`w-full ${sizes[size]} bg-white rounded-2xl shadow-xl flex flex-col max-h-[90vh]`}
+        className={`w-full ${sizes[size]} bg-elevated rounded-2xl shadow-xl flex flex-col max-h-[90vh] animate-scale-in`}
         role="dialog"
         aria-modal="true"
       >
         {/* Header */}
         {(title || !hideClose) && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-            {title && <h2 className="text-base font-semibold text-gray-900">{title}</h2>}
+          <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b border-line shrink-0">
+            {title && <h2 className="text-base font-semibold text-ink">{title}</h2>}
             {!hideClose && (
               <button
                 type="button"
                 onClick={onClose}
-                className="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                className="ml-auto p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-elevated-2 transition-colors"
                 aria-label="Close modal"
               >
                 <X size={18} />
@@ -56,7 +56,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md', hideClose = fals
         )}
 
         {/* Scrollable content */}
-        <div className="overflow-y-auto flex-1 px-6 py-5">{children}</div>
+        <div className="overflow-y-auto flex-1 px-5 sm:px-6 py-5">{children}</div>
       </div>
     </div>,
     document.body,

@@ -1,6 +1,12 @@
 import axios from 'axios';
-import store from '../app/store.js';
-import { setCredentials, clearCredentials } from '../features/auth/authSlice.js';
+import { getStore } from './storeRegistry.js';
+
+// Dispatched as plain action objects (matching authSlice's RTK-generated
+// type strings) instead of importing the action creators from authSlice.js —
+// importing that slice here would recreate the same circular dependency this
+// file was just pulled out of (authSlice -> authApi -> axiosInstance).
+const AUTH_SET_CREDENTIALS = 'auth/setCredentials';
+const AUTH_CLEAR_CREDENTIALS = 'auth/clearCredentials';
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
@@ -12,7 +18,7 @@ const axiosInstance = axios.create({
 // Attach the access token on every request
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = store.getState().auth.accessToken;
+    const token = getStore().getState().auth.accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -66,13 +72,13 @@ axiosInstance.interceptors.response.use(
       );
 
       const { accessToken, user } = data.data;
-      store.dispatch(setCredentials({ user, accessToken }));
+      getStore().dispatch({ type: AUTH_SET_CREDENTIALS, payload: { user, accessToken } });
       processQueue(null, accessToken);
       original.headers.Authorization = `Bearer ${accessToken}`;
       return axiosInstance(original);
     } catch (refreshError) {
       processQueue(refreshError, null);
-      store.dispatch(clearCredentials());
+      getStore().dispatch({ type: AUTH_CLEAR_CREDENTIALS });
       // Let ProtectedRoute's <Navigate to="/login"> handle redirection via React Router
       // — do NOT use window.location.href here, which causes a full-page reload loop
       return Promise.reject(refreshError);

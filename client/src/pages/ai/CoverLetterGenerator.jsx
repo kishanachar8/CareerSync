@@ -42,13 +42,13 @@ const CoverLetterGenerator = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
           <FileText size={24} className="text-primary-600" />
           Cover Letter Generator
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-ink-muted mt-1">
           Generate a tailored cover letter from your resume and the job description.
         </p>
       </div>
@@ -57,22 +57,22 @@ const CoverLetterGenerator = () => {
         <Card.Body className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Your Resume</label>
+              <label className="block text-sm font-medium text-ink mb-1.5">Your Resume</label>
               <select
                 value={resumeId}
                 onChange={(e) => setResumeId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Select a resume…</option>
                 {resumes.map((r) => <option key={r._id} value={r._id}>{r.fileName}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Job</label>
+              <label className="block text-sm font-medium text-ink mb-1.5">Job</label>
               <select
                 value={jobId}
                 onChange={(e) => setJobId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Select a job…</option>
                 {jobs.map((j) => <option key={j._id} value={j._id}>{j.title} — {j.company}</option>)}
@@ -82,7 +82,7 @@ const CoverLetterGenerator = () => {
 
           {/* Tone selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tone</label>
+            <label className="block text-sm font-medium text-ink mb-2">Tone</label>
             <div className="flex gap-2">
               {TONES.map(({ value, label, desc }) => (
                 <button
@@ -91,12 +91,12 @@ const CoverLetterGenerator = () => {
                   onClick={() => setTone(value)}
                   className={`flex-1 px-3 py-2 rounded-lg border text-sm text-left transition-colors ${
                     tone === value
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/25 text-primary-700 dark:text-primary-300'
+                      : 'border-line hover:border-primary-200 dark:hover:border-primary-800 text-ink'
                   }`}
                 >
                   <div className="font-medium">{label}</div>
-                  <div className="text-xs text-gray-400 mt-0.5">{desc}</div>
+                  <div className="text-xs text-ink-muted/70 mt-0.5">{desc}</div>
                 </button>
               ))}
             </div>
@@ -122,7 +122,7 @@ const CoverLetterGenerator = () => {
         <Card>
           <Card.Header>
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">Generated Cover Letter</h2>
+              <h2 className="font-semibold text-ink">Generated Cover Letter</h2>
               <div className="flex gap-2">
                 <Button variant="secondary" size="sm" className="gap-1.5" onClick={handleCopy}>
                   <Copy size={13} />Copy
@@ -134,7 +134,7 @@ const CoverLetterGenerator = () => {
             </div>
           </Card.Header>
           <Card.Body>
-            <pre className="whitespace-pre-wrap text-sm text-gray-700 font-sans leading-relaxed">
+            <pre className="whitespace-pre-wrap text-sm text-ink font-sans leading-relaxed">
               {coverLetter}
             </pre>
           </Card.Body>

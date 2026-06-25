@@ -111,23 +111,23 @@ const EducationForm = ({ defaultValues, onSubmit, onCancel, isLoading }) => {
 };
 
 const EducationCard = ({ edu, onEdit, onDelete }) => (
-  <div className="flex gap-4 py-4 first:pt-0 last:pb-0 border-b border-gray-100 last:border-0">
-    <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center shrink-0 mt-0.5">
+  <div className="flex gap-4 py-4 first:pt-0 last:pb-0 border-b border-line last:border-0">
+    <div className="w-10 h-10 rounded-lg bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center shrink-0 mt-0.5">
       <GraduationCap size={18} className="text-violet-600" />
     </div>
     <div className="flex-1 min-w-0">
-      <p className="font-medium text-gray-900 truncate">
+      <p className="font-medium text-ink truncate">
         {edu.degree}{edu.field ? ` · ${edu.field}` : ''}
       </p>
-      <p className="text-sm text-gray-600">{edu.institution}</p>
-      <p className="text-xs text-gray-400 mt-0.5">
+      <p className="text-sm text-ink-muted">{edu.institution}</p>
+      <p className="text-xs text-ink-muted/70 mt-0.5">
         {formatDate(edu.from, { year: 'numeric', month: 'short' })}
         {' — '}
         {edu.current ? 'Present' : edu.to ? formatDate(edu.to, { year: 'numeric', month: 'short' }) : ''}
-        {edu.grade && <span className="ml-2 text-gray-500">· {edu.grade}</span>}
+        {edu.grade && <span className="ml-2 text-ink-muted">· {edu.grade}</span>}
       </p>
       {edu.description && (
-        <p className="text-sm text-gray-500 mt-2 line-clamp-2">{edu.description}</p>
+        <p className="text-sm text-ink-muted mt-2 line-clamp-2">{edu.description}</p>
       )}
     </div>
     <div className="flex gap-1 shrink-0">
@@ -225,7 +225,7 @@ const EducationManager = () => {
           ) : (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <GraduationCap size={36} className="text-gray-300 mb-3" />
-              <p className="text-sm text-gray-500">No education added yet</p>
+              <p className="text-sm text-ink-muted">No education added yet</p>
               <button
                 type="button"
                 onClick={() => setModal({ open: true, editing: null })}

@@ -6,12 +6,16 @@ import logger from '../../utils/logger.js';
 import { paginate, paginationMeta } from '../../utils/pagination.js';
 import { syncJobsFromProviders } from '../../services/jobSync.service.js';
 
+// Escape regex metacharacters so user input can't be used to build a
+// pathological pattern (ReDoS) or alter the intended match.
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // ─── Build search query ────────────────────────────────────────────────────────
 const buildQuery = ({ keyword, location, source, employmentType, skills, salaryMin, remote, postedWithin }) => {
   const q = { isActive: true };
 
   if (keyword)        q.$text = { $search: keyword };
-  if (location)       q.location = { $regex: location, $options: 'i' };
+  if (location)       q.location = { $regex: escapeRegex(location), $options: 'i' };
   if (source)         q.source = source;
   if (employmentType) q.employmentType = employmentType;
 

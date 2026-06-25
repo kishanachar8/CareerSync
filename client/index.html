@@ -14,6 +14,14 @@
     />
   </head>
   <body>
+    <!-- Runs before paint so there's no flash of the wrong theme on load. -->
+    <script>
+      (function () {
+        var stored = localStorage.getItem('careersync-theme');
+        var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

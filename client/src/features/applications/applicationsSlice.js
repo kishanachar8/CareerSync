@@ -92,6 +92,7 @@ const applicationsSlice = createSlice({
     listStatus: 'idle',
     detailStatus: 'idle',
     actionStatus: 'idle',
+    statsStatus: 'idle',
     error: null,
   },
   reducers: {
@@ -186,9 +187,12 @@ const applicationsSlice = createSlice({
 
     // Stats
     builder
+      .addCase(fetchApplicationStats.pending, (state) => { state.statsStatus = 'loading'; })
       .addCase(fetchApplicationStats.fulfilled, (state, { payload }) => {
+        state.statsStatus = 'succeeded';
         state.stats = payload;
-      });
+      })
+      .addCase(fetchApplicationStats.rejected, (state) => { state.statsStatus = 'failed'; });
   },
 });
 

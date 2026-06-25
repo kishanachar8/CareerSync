@@ -55,7 +55,7 @@ const JobDetails = () => {
   if (jobStatus === 'failed') {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-red-500">{error || 'Job not found'}</p>
+        <p className="text-rose-500">{error || 'Job not found'}</p>
         <Button variant="secondary" size="sm" className="mt-4" onClick={() => navigate(-1)}>
           Go back
         </Button>
@@ -66,9 +66,9 @@ const JobDetails = () => {
   if (!job) return null;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       {/* Back nav */}
-      <Link to="/jobs" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
+      <Link to="/jobs" className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
         <ChevronLeft size={15} />
         Back to listings
       </Link>
@@ -76,16 +76,16 @@ const JobDetails = () => {
       {/* Header card */}
       <Card>
         <Card.Body>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
-                <Building2 size={22} className="text-gray-500" />
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 bg-elevated-2 rounded-xl flex items-center justify-center shrink-0">
+                <Building2 size={22} className="text-ink-muted" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{job.title}</h1>
-                <p className="text-gray-600 mt-0.5">{job.company}</p>
+                <h1 className="text-lg sm:text-xl font-bold text-ink">{job.title}</h1>
+                <p className="text-ink-muted mt-0.5">{job.company}</p>
 
-                <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-500">
+                <div className="flex flex-wrap gap-3 sm:gap-4 mt-3 text-sm text-ink-muted">
                   {job.location && (
                     <span className="flex items-center gap-1.5">
                       <MapPin size={14} />{job.location}
@@ -97,7 +97,7 @@ const JobDetails = () => {
                     </span>
                   )}
                   {(job.salary?.min || job.salary?.max) && (
-                    <span className="flex items-center gap-1.5 text-green-700 font-medium">
+                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
                       <DollarSign size={14} />
                       {job.salary.min ? `${(job.salary.min / 1000).toFixed(0)}k` : ''}
                       {job.salary.min && job.salary.max ? '–' : ''}
@@ -114,7 +114,7 @@ const JobDetails = () => {
               </div>
             </div>
 
-            <div className="flex gap-2 shrink-0">
+            <div className="flex gap-2 shrink-0 flex-wrap">
               <Button
                 variant="secondary"
                 size="sm"
@@ -150,18 +150,18 @@ const JobDetails = () => {
         </Card.Body>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
         {/* Description */}
         <div className="lg:col-span-2">
           <Card>
-            <Card.Header><h2 className="font-semibold text-gray-900">Job Description</h2></Card.Header>
+            <Card.Header><h2 className="font-semibold text-ink">Job Description</h2></Card.Header>
             <Card.Body>
               {job.description ? (
-                <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-line leading-relaxed">
+                <div className="prose prose-sm max-w-none text-ink-muted whitespace-pre-line leading-relaxed">
                   {job.description}
                 </div>
               ) : (
-                <p className="text-gray-400 italic text-sm">No description available.</p>
+                <p className="text-ink-muted/70 italic text-sm">No description available.</p>
               )}
             </Card.Body>
           </Card>
@@ -171,7 +171,7 @@ const JobDetails = () => {
         <div className="space-y-4">
           {job.skills?.length > 0 && (
             <Card>
-              <Card.Header><h2 className="font-semibold text-gray-900">Required Skills</h2></Card.Header>
+              <Card.Header><h2 className="font-semibold text-ink">Required Skills</h2></Card.Header>
               <Card.Body>
                 <div className="flex flex-wrap gap-2">
                   {job.skills.map((s) => <Badge key={s}>{s}</Badge>)}
@@ -181,16 +181,16 @@ const JobDetails = () => {
           )}
 
           <Card>
-            <Card.Header><h2 className="font-semibold text-gray-900">Job Info</h2></Card.Header>
+            <Card.Header><h2 className="font-semibold text-ink">Job Info</h2></Card.Header>
             <Card.Body className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Source</span>
-                <span className="font-medium capitalize">{SOURCE_LABELS[job.source] || job.source}</span>
+                <span className="text-ink-muted">Source</span>
+                <span className="font-medium text-ink capitalize">{SOURCE_LABELS[job.source] || job.source}</span>
               </div>
-              {job.experienceRequired?.min !== undefined && (
+              {(job.experienceRequired?.min > 0 || job.experienceRequired?.max > 0) && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Experience</span>
-                  <span className="font-medium">
+                  <span className="text-ink-muted">Experience</span>
+                  <span className="font-medium text-ink">
                     {job.experienceRequired.min}
                     {job.experienceRequired.max ? `–${job.experienceRequired.max}` : '+'}
                     {' yrs'}
@@ -198,8 +198,8 @@ const JobDetails = () => {
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-500">Posted</span>
-                <span className="font-medium">{formatDate(job.postedAt)}</span>
+                <span className="text-ink-muted">Posted</span>
+                <span className="font-medium text-ink">{formatDate(job.postedAt)}</span>
               </div>
             </Card.Body>
           </Card>

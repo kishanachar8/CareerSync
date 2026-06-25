@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { injectStore } from '../api/storeRegistry.js';
 import authReducer from '../features/auth/authSlice.js';
 import jobsReducer from '../features/jobs/jobsSlice.js';
 import resumeReducer from '../features/resume/resumeSlice.js';
@@ -23,5 +24,9 @@ const store = configureStore({
   },
   devTools: import.meta.env.DEV,
 });
+
+// Let axiosInstance.js (and anything else outside the component tree) reach
+// the store without statically importing this module — see storeRegistry.js.
+injectStore(store);
 
 export default store;

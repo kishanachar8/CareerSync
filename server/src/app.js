@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import mongoose from 'mongoose';
+import redis from './config/redis.js';
 import requestLogger from './middleware/requestLogger.js';
 import { globalLimiter } from './middleware/rateLimiter.js';
 import notFound from './middleware/notFound.js';
@@ -21,6 +23,10 @@ import automationRoutes from './modules/automation/automation.routes.js';
 import gmailRoutes from './modules/gmail/gmail.routes.js';
 
 const app = express();
+
+// Trust the first hop (ALB/Nginx) so req.ip, rate-limit keying, and secure
+// cookies reflect the real client instead of the proxy.
+app.set('trust proxy', 1);
 
 // ─── Security Headers ─────────────────────────────────────────────────────────
 app.use(helmet());
@@ -46,9 +52,26 @@ app.use(requestLogger);
 // ─── Global Rate Limiting ────────────────────────────────────────────────────
 app.use(globalLimiter);
 
-// ─── Health Check ─────────────────────────────────────────────────────────────
+// ─── Health Check ──────────────────────────────────────────────────────────────
+// Liveness only (process is up and serving) — this is what the ALB target group
+// should point at. A shallow check avoids pulling every instance out of rotation
+// at once during a transient DB/Redis blip; use /health/deep for diagnostics.
 app.get('/health', (_req, res) => {
   res.json({ success: true, message: 'CareerSync API is running', env: env.NODE_ENV });
+});
+
+app.get('/health/deep', (_req, res) => {
+  const dbUp = mongoose.connection.readyState === 1;
+  const redisUp = redis.status === 'ready' || redis.status === 'connect';
+  const ok = dbUp && redisUp;
+
+  res.status(ok ? 200 : 503).json({
+    success: ok,
+    message: ok ? 'CareerSync API is healthy' : 'CareerSync API is degraded',
+    env: env.NODE_ENV,
+    db: dbUp ? 'up' : 'down',
+    redis: redisUp ? 'up' : 'down',
+  });
 });
 
 // ─── Static Files (dev fallback: local resume/avatar uploads) ────────────────

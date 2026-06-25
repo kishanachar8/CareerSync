@@ -12,14 +12,14 @@ const Input = forwardRef(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-[13px] font-medium text-gray-700 mb-1.5"
+            className="block text-[13px] font-medium text-ink mb-1.5"
           >
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {prefix && (
-            <span className="absolute left-3 text-gray-400 pointer-events-none">{prefix}</span>
+            <span className="absolute left-3 text-ink-muted pointer-events-none">{prefix}</span>
           )}
           <input
             ref={ref}
@@ -27,11 +27,11 @@ const Input = forwardRef(
             type={isPassword ? (showPassword ? 'text' : 'password') : type}
             className={[
               'w-full py-2.5 border rounded-xl text-sm transition-all duration-150',
-              'placeholder:text-gray-400 text-gray-900',
+              'placeholder:text-ink-muted text-ink bg-elevated',
               'focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500',
               error
-                ? 'border-rose-400 bg-rose-50/50 focus:ring-rose-400/30 focus:border-rose-400'
-                : 'border-surface-200 bg-white hover:border-surface-300',
+                ? 'border-rose-400 bg-rose-50/50 dark:bg-rose-950/20 focus:ring-rose-400/30 focus:border-rose-400'
+                : 'border-line hover:border-primary-200 dark:hover:border-primary-800',
               prefix  ? 'pl-9' : 'pl-3.5',
               (isPassword || suffix) ? 'pr-10' : 'pr-3.5',
               className,
@@ -43,14 +43,14 @@ const Input = forwardRef(
             <button
               type="button"
               tabIndex={-1}
-              className="absolute right-3 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute right-3 text-ink-muted hover:text-ink transition-colors"
               onClick={() => setShowPassword((s) => !s)}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
           ) : suffix ? (
-            <span className="absolute right-3 text-gray-400 pointer-events-none">{suffix}</span>
+            <span className="absolute right-3 text-ink-muted pointer-events-none">{suffix}</span>
           ) : error ? (
             <AlertCircle size={15} className="absolute right-3 text-rose-400 pointer-events-none" />
           ) : null}

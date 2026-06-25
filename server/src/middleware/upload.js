@@ -99,7 +99,7 @@ function saveLocally(buffer, options) {
   const filepath = path.join(uploadsDir, filename);
   fs.writeFileSync(filepath, buffer);
 
-  const baseUrl = `http://localhost:${env.PORT || 5000}`;
+  const baseUrl = env.API_PUBLIC_URL || `http://localhost:${env.PORT || 5000}`;
   return {
     secure_url: `${baseUrl}/uploads/${filename}`,
     public_id:  filename,

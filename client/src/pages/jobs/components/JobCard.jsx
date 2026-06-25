@@ -21,7 +21,7 @@ const SOURCE_CFG = {
   themuse:   { label: 'TheMuse',   cls: 'bg-pink-50     text-pink-700    ring-pink-200'    },
   findwork:  { label: 'Findwork',  cls: 'bg-amber-50    text-amber-700   ring-amber-200'   },
   reed:      { label: 'Reed',      cls: 'bg-red-50      text-red-700     ring-red-200'     },
-  manual:    { label: 'Manual',    cls: 'bg-gray-100    text-gray-600    ring-gray-200'    },
+  manual:    { label: 'Manual',    cls: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 ring-gray-200 dark:ring-gray-700'    },
 };
 
 // Deterministic hue for company avatars based on first letter
@@ -77,11 +77,11 @@ const JobCard = ({ job }) => {
   return (
     <Link
       to={`/jobs/${job._id}`}
-      className="group block bg-white border border-surface-200 rounded-2xl p-4 hover:border-primary-200 hover:shadow-card-hover transition-all duration-200"
+      className="group block bg-elevated border border-line rounded-2xl p-3.5 sm:p-4 hover:border-primary-200 dark:hover:border-primary-800 hover:shadow-card-hover transition-all duration-200"
     >
-      <div className="flex items-start gap-3.5">
+      <div className="flex items-start gap-3 sm:gap-3.5">
         {/* Company avatar */}
-        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm`}>
+        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm`}>
           {initials}
         </div>
 
@@ -89,10 +89,10 @@ const JobCard = ({ job }) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <h3 className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors text-[15px] leading-snug truncate">
+              <h3 className="font-semibold text-ink group-hover:text-primary-600 transition-colors text-[15px] leading-snug truncate">
                 {job.title}
               </h3>
-              <p className="text-sm text-gray-500 mt-0.5 truncate">{job.company}</p>
+              <p className="text-sm text-ink-muted mt-0.5 truncate">{job.company}</p>
             </div>
 
             {/* Bookmark */}
@@ -102,8 +102,8 @@ const JobCard = ({ job }) => {
               aria-label={isSaved ? 'Remove bookmark' : 'Save job'}
               className={`p-1.5 rounded-lg transition-all shrink-0 ${
                 isSaved
-                  ? 'text-primary-600 bg-primary-50'
-                  : 'text-gray-300 hover:text-primary-600 hover:bg-primary-50'
+                  ? 'text-primary-600 bg-primary-50 dark:bg-primary-950/40'
+                  : 'text-ink-muted/50 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/40'
               }`}
             >
               {isSaved ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
@@ -118,21 +118,21 @@ const JobCard = ({ job }) => {
             </span>
 
             {job.location && !(job.source === 'naukri' && job.location.toLowerCase() === 'remote') && (
-              <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="flex items-center gap-1 text-xs text-ink-muted">
                 <MapPin size={11} />
                 <span className="truncate max-w-[140px]">{job.location}</span>
               </span>
             )}
 
             {job.employmentType && (
-              <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="flex items-center gap-1 text-xs text-ink-muted">
                 <Briefcase size={11} />
                 <span className="capitalize">{job.employmentType.replace(/-/g, ' ')}</span>
               </span>
             )}
 
             {job.postedAt && (
-              <span className="flex items-center gap-1 text-xs text-gray-400 ml-auto">
+              <span className="flex items-center gap-1 text-xs text-ink-muted ml-auto">
                 <Clock size={11} />
                 {timeAgo(job.postedAt)}
               </span>
@@ -141,7 +141,7 @@ const JobCard = ({ job }) => {
 
           {/* Salary */}
           {salary && (
-            <div className="flex items-center gap-1 mt-2 text-emerald-700 font-semibold text-sm">
+            <div className="flex items-center gap-1 mt-2 text-emerald-700 dark:text-emerald-400 font-semibold text-sm">
               <DollarSign size={13} />
               {salary}
             </div>

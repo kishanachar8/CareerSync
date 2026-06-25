@@ -35,7 +35,7 @@ const ScoreGauge = ({ score, recommendation }) => {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className={`text-4xl font-bold ${label}`}>{score}</span>
-          <span className="text-xs text-gray-500 font-medium">/ 100</span>
+          <span className="text-xs text-ink-muted font-medium">/ 100</span>
         </div>
       </div>
       <span className={`text-xs font-semibold px-3 py-1 rounded-full ${rec.className}`}>

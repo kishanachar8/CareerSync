@@ -43,7 +43,7 @@ const ResumeCard = ({ resume, onPreview }) => {
   const extraSkills = (resume.extractedSkills?.length || 0) - visibleSkills.length;
 
   return (
-    <div className={`bg-white rounded-xl border transition-shadow hover:shadow-md ${resume.isDefault ? 'border-primary-300 ring-1 ring-primary-200' : 'border-gray-200'}`}>
+    <div className={`bg-elevated rounded-xl border transition-shadow hover:shadow-md ${resume.isDefault ? 'border-primary-300 ring-1 ring-primary-200 dark:ring-primary-800' : 'border-line'}`}>
       <div className="p-5">
         {/* Header */}
         <div className="flex items-start gap-3">
@@ -52,7 +52,7 @@ const ResumeCard = ({ resume, onPreview }) => {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-semibold text-gray-900 truncate">{resume.fileName}</p>
+              <p className="text-sm font-semibold text-ink truncate">{resume.fileName}</p>
               {resume.isDefault && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded-full">
                   <Star size={10} className="fill-primary-600" />
@@ -60,7 +60,7 @@ const ResumeCard = ({ resume, onPreview }) => {
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-ink-muted/70 mt-0.5">
               {formatDate(resume.createdAt)} · {formatBytes(resume.fileSize)}
             </p>
           </div>
@@ -79,12 +79,12 @@ const ResumeCard = ({ resume, onPreview }) => {
         )}
 
         {!resume.extractedSkills?.length && (
-          <p className="mt-3 text-xs text-gray-400 italic">No skills extracted</p>
+          <p className="mt-3 text-xs text-ink-muted/70 italic">No skills extracted</p>
         )}
       </div>
 
       {/* Actions */}
-      <div className="px-5 py-3 border-t border-gray-100 flex items-center gap-2">
+      <div className="px-5 py-3 border-t border-line flex items-center gap-2">
         <button
           type="button"
           onClick={() => onPreview(resume._id)}
@@ -110,7 +110,7 @@ const ResumeCard = ({ resume, onPreview }) => {
               type="button"
               disabled={busy}
               onClick={handleSetDefault}
-              className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-primary-600 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-1.5 text-xs font-medium text-ink-muted hover:text-primary-600 disabled:opacity-50 transition-colors"
             >
               <Star size={14} />
               Set default

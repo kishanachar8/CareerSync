@@ -1,24 +1,27 @@
+import { lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout.jsx';
 import DashboardLayout from '../layouts/DashboardLayout.jsx';
 import ProtectedRoute from '../components/common/ProtectedRoute.jsx';
-import Login from '../pages/auth/Login.jsx';
-import Register from '../pages/auth/Register.jsx';
-import VerifyEmail from '../pages/auth/VerifyEmail.jsx';
-import Dashboard from '../pages/dashboard/Dashboard.jsx';
-import Profile from '../pages/profile/Profile.jsx';
-import ResumeDashboard from '../pages/resume/ResumeDashboard.jsx';
-import JobListings from '../pages/jobs/JobListings.jsx';
-import JobDetails from '../pages/jobs/JobDetails.jsx';
-import SavedJobs from '../pages/jobs/SavedJobs.jsx';
-import ApplicationsDashboard from '../pages/applications/ApplicationsDashboard.jsx';
-import ApplicationDetail from '../pages/applications/ApplicationDetail.jsx';
-import ResumeAnalysis from '../pages/ai/ResumeAnalysis.jsx';
-import CoverLetterGenerator from '../pages/ai/CoverLetterGenerator.jsx';
-import SkillGap from '../pages/ai/SkillGap.jsx';
-import Analytics from '../pages/analytics/Analytics.jsx';
-import Automation from '../pages/automation/Automation.jsx';
-import NotFound from '../pages/NotFound.jsx';
+
+const Login = lazy(() => import('../pages/auth/Login.jsx'));
+const Register = lazy(() => import('../pages/auth/Register.jsx'));
+const VerifyEmail = lazy(() => import('../pages/auth/VerifyEmail.jsx'));
+const Dashboard = lazy(() => import('../pages/dashboard/Dashboard.jsx'));
+const Profile = lazy(() => import('../pages/profile/Profile.jsx'));
+const ResumeDashboard = lazy(() => import('../pages/resume/ResumeDashboard.jsx'));
+const JobListings = lazy(() => import('../pages/jobs/JobListings.jsx'));
+const JobDetails = lazy(() => import('../pages/jobs/JobDetails.jsx'));
+const SavedJobs = lazy(() => import('../pages/jobs/SavedJobs.jsx'));
+const ApplicationsDashboard = lazy(() => import('../pages/applications/ApplicationsDashboard.jsx'));
+const ApplicationDetail = lazy(() => import('../pages/applications/ApplicationDetail.jsx'));
+const ResumeAnalysis = lazy(() => import('../pages/ai/ResumeAnalysis.jsx'));
+const CoverLetterGenerator = lazy(() => import('../pages/ai/CoverLetterGenerator.jsx'));
+const SkillGap = lazy(() => import('../pages/ai/SkillGap.jsx'));
+const Analytics = lazy(() => import('../pages/analytics/Analytics.jsx'));
+const Automation = lazy(() => import('../pages/automation/Automation.jsx'));
+const NotFound = lazy(() => import('../pages/NotFound.jsx'));
+const Unauthorized = lazy(() => import('../pages/Unauthorized.jsx'));
 
 const AppRouter = () => (
   <Routes>
@@ -49,6 +52,7 @@ const AppRouter = () => (
     </Route>
 
     <Route path="/" element={<Navigate to="/dashboard" replace />} />
+    <Route path="/unauthorized" element={<Unauthorized />} />
     <Route path="*" element={<NotFound />} />
   </Routes>
 );

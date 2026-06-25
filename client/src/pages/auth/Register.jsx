@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { register as registerUser, clearAuthError } from '../../features/auth/authSlice.js';
 import FormField from '../../components/forms/FormField.jsx';
 import Button from '../../components/ui/Button.jsx';
+import GoogleSignInButton from '../../components/auth/GoogleSignInButton.jsx';
 import { CheckCircle } from 'lucide-react';
 
 const PASSWORD_RULES = {
@@ -33,7 +34,7 @@ const PasswordStrength = ({ password = '' }) => {
           <div
             key={i}
             className={`h-1 flex-1 rounded-full transition-colors ${
-              i <= score ? colors[score] : 'bg-gray-200'
+              i <= score ? colors[score] : 'bg-elevated-2'
             }`}
           />
         ))}
@@ -44,7 +45,7 @@ const PasswordStrength = ({ password = '' }) => {
             <span
               key={label}
               className={`flex items-center gap-1 text-xs ${
-                ok ? 'text-green-600' : 'text-gray-400'
+                ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-muted'
               }`}
             >
               <CheckCircle size={11} className={ok ? 'fill-green-500 text-white' : ''} />
@@ -54,7 +55,7 @@ const PasswordStrength = ({ password = '' }) => {
         </div>
       )}
       {password && score > 0 && (
-        <p className={`text-xs font-medium ${score === 4 ? 'text-green-600' : 'text-gray-500'}`}>
+        <p className={`text-xs font-medium ${score === 4 ? 'text-emerald-600 dark:text-emerald-400' : 'text-ink-muted'}`}>
           Strength: {labels[score]}
         </p>
       )}
@@ -106,12 +107,12 @@ const Register = () => {
   if (successMessage) {
     return (
       <div className="text-center space-y-4">
-        <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-          <CheckCircle className="text-green-600" size={28} />
+        <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-950/40 rounded-full flex items-center justify-center mx-auto">
+          <CheckCircle className="text-emerald-600 dark:text-emerald-400" size={28} />
         </div>
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Check your inbox</h2>
-          <p className="text-sm text-gray-500 mt-2 max-w-xs mx-auto">{successMessage}</p>
+          <h2 className="text-xl font-semibold text-ink">Check your inbox</h2>
+          <p className="text-sm text-ink-muted mt-2 max-w-xs mx-auto">{successMessage}</p>
         </div>
         <Button
           variant="secondary"
@@ -130,12 +131,12 @@ const Register = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">Create your account</h2>
-        <p className="text-sm text-gray-500 mt-1">Start your AI-powered job search</p>
+        <h2 className="text-xl font-semibold text-ink">Create your account</h2>
+        <p className="text-sm text-ink-muted mt-1">Start your AI-powered job search</p>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        <div className="p-3 bg-rose-50 border border-rose-200 dark:bg-rose-950/30 dark:border-rose-800 rounded-lg text-sm text-rose-700 dark:text-rose-300">
           {error}
         </div>
       )}
@@ -199,7 +200,15 @@ const Register = () => {
         Create account
       </Button>
 
-      <p className="text-center text-sm text-gray-500">
+      <div className="flex items-center gap-3">
+        <span className="h-px flex-1 bg-line" />
+        <span className="text-xs text-ink-muted">or</span>
+        <span className="h-px flex-1 bg-line" />
+      </div>
+
+      <GoogleSignInButton />
+
+      <p className="text-center text-sm text-ink-muted">
         Already have an account?{' '}
         <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
           Sign in

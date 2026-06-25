@@ -49,7 +49,8 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      // Google-only accounts have no password — required only when there's no googleId
+      required: [function () { return !this.googleId; }, 'Password is required'],
       minlength: [8, 'Password must be at least 8 characters'],
       select: false,
     },
@@ -58,6 +59,9 @@ const userSchema = new Schema(
       enum: Object.values(USER_ROLES),
       default: USER_ROLES.USER,
     },
+
+    // ─── Google OAuth ("Sign in with Google") ─────────────────────────
+    googleId: { type: String, unique: true, sparse: true, select: false },
 
     // ─── Email Verification ──────────────────────────────────────────
     isEmailVerified: { type: Boolean, default: false },

@@ -54,18 +54,19 @@ export default function ScreeningQAManager({ source = 'naukri' }) {
         <div className="flex items-center gap-2">
           <Brain size={16} className="text-primary-600" />
           <div>
-            <h3 className="font-semibold text-gray-900">Learned Screening Answers</h3>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <h3 className="font-semibold text-ink">Learned Screening Answers</h3>
+            <p className="text-xs text-ink-muted mt-0.5">
               Questions the bot has learned to answer automatically. Delete an entry to re-prompt next time.
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-400">{total} stored</span>
+          <span className="text-xs text-ink-muted/70">{total} stored</span>
           <button
+            type="button"
             onClick={() => load(page)}
             disabled={loading}
-            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-500"
+            className="p-1.5 rounded-md hover:bg-elevated-2 text-ink-muted"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
@@ -74,11 +75,11 @@ export default function ScreeningQAManager({ source = 'naukri' }) {
 
       <Card.Body className="p-0">
         {loading && !items.length ? (
-          <div className="flex items-center justify-center py-10 text-gray-400 gap-2 text-sm">
+          <div className="flex items-center justify-center py-10 text-ink-muted gap-2 text-sm">
             <RefreshCw size={14} className="animate-spin" /> Loading…
           </div>
         ) : !items.length ? (
-          <p className="text-center text-sm text-gray-400 py-10">
+          <p className="text-center text-sm text-ink-muted/70 py-10">
             No answers learned yet. Run an automation session — the bot will save answers as it goes.
           </p>
         ) : (
@@ -86,7 +87,7 @@ export default function ScreeningQAManager({ source = 'naukri' }) {
             {items.map((item) => (
               <li key={item._id}>
                 <div
-                  className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center gap-3 px-5 py-3 hover:bg-elevated-2/70 cursor-pointer"
                   onClick={() => toggleExpand(item._id)}
                 >
                   {/* Field type badge */}
@@ -95,23 +96,24 @@ export default function ScreeningQAManager({ source = 'naukri' }) {
                   </Badge>
 
                   {/* Question text */}
-                  <p className="flex-1 text-sm text-gray-800 truncate">{item.questionText}</p>
+                  <p className="flex-1 text-sm text-ink truncate">{item.questionText}</p>
 
                   {/* Usage count */}
-                  <span className="text-xs text-gray-400 shrink-0">
+                  <span className="text-xs text-ink-muted/70 shrink-0">
                     used {item.usageCount}×
                   </span>
 
                   {/* Expand icon */}
-                  <span className="text-gray-400">
+                  <span className="text-ink-muted">
                     {expanded === item._id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </span>
 
                   {/* Delete */}
                   <button
+                    type="button"
                     onClick={(e) => { e.stopPropagation(); handleDelete(item._id); }}
                     disabled={deleting === item._id}
-                    className="p-1 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                    className="p-1 text-ink-muted hover:text-red-500 transition-colors disabled:opacity-50"
                     title="Delete this answer"
                   >
                     <Trash2 size={14} />
@@ -120,11 +122,11 @@ export default function ScreeningQAManager({ source = 'naukri' }) {
 
                 {/* Expanded: options preview */}
                 {expanded === item._id && item.options?.length > 0 && (
-                  <div className="px-5 pb-3 bg-gray-50 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 mt-2 mb-1">Available options when learned:</p>
+                  <div className="px-5 pb-3 bg-elevated-2/60 border-t border-line">
+                    <p className="text-xs text-ink-muted mt-2 mb-1">Available options when learned:</p>
                     <div className="flex flex-wrap gap-1.5">
                       {item.options.map((opt) => (
-                        <span key={opt} className="text-xs px-2 py-0.5 bg-white border border-gray-200 rounded-full text-gray-600">
+                        <span key={opt} className="text-xs px-2 py-0.5 bg-elevated border border-line rounded-full text-ink">
                           {opt}
                         </span>
                       ))}
@@ -139,10 +141,11 @@ export default function ScreeningQAManager({ source = 'naukri' }) {
 
       {/* Pagination */}
       {total > LIMIT && (
-        <Card.Footer className="flex items-center justify-between text-xs text-gray-500">
+        <Card.Footer className="flex items-center justify-between text-xs text-ink-muted">
           <span>Showing {(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, total)} of {total}</span>
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={() => load(page - 1)}
               disabled={page === 1 || loading}
               className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-40"
@@ -150,6 +153,7 @@ export default function ScreeningQAManager({ source = 'naukri' }) {
               Prev
             </button>
             <button
+              type="button"
               onClick={() => load(page + 1)}
               disabled={page * LIMIT >= total || loading}
               className="px-2 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-40"

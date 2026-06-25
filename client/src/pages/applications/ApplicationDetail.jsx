@@ -76,8 +76,8 @@ const ApplicationDetail = () => {
   const job = app.jobId;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <Link to="/applications" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
+    <div className="max-w-5xl mx-auto space-y-6">
+      <Link to="/applications" className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
         <ChevronLeft size={15} />
         Back to applications
       </Link>
@@ -87,13 +87,13 @@ const ApplicationDetail = () => {
         <Card.Body>
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
-                <Building2 size={22} className="text-gray-500" />
+              <div className="w-12 h-12 bg-elevated-2 rounded-xl flex items-center justify-center shrink-0">
+                <Building2 size={22} className="text-ink-muted" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{job?.title || 'Unknown Position'}</h1>
-                <p className="text-gray-600">{job?.company || '—'}</p>
-                <div className="flex flex-wrap gap-3 mt-2 text-sm text-gray-500">
+                <h1 className="text-xl font-bold text-ink">{job?.title || 'Unknown Position'}</h1>
+                <p className="text-ink-muted">{job?.company || '—'}</p>
+                <div className="flex flex-wrap gap-3 mt-2 text-sm text-ink-muted">
                   {job?.location && (
                     <span className="flex items-center gap-1.5"><MapPin size={13} />{job.location}</span>
                   )}
@@ -128,16 +128,16 @@ const ApplicationDetail = () => {
       {/* Edit form */}
       <Card>
         <Card.Header>
-          <h2 className="font-semibold text-gray-900">Update Application</h2>
+          <h2 className="font-semibold text-ink">Update Application</h2>
         </Card.Header>
         <Card.Body className="space-y-5">
           {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+            <label className="block text-sm font-medium text-ink mb-1.5">Status</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s} className="capitalize">{s.charAt(0).toUpperCase() + s.slice(1)}</option>
@@ -147,13 +147,13 @@ const ApplicationDetail = () => {
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+            <label className="block text-sm font-medium text-ink mb-1.5">Notes</label>
             <textarea
               rows={4}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Interview date, recruiter name, next steps…"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             />
           </div>
 
@@ -167,7 +167,7 @@ const ApplicationDetail = () => {
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
               placeholder="Paste or write your cover letter here…"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none font-mono"
+              className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none font-mono"
             />
           </div>
 
@@ -175,7 +175,7 @@ const ApplicationDetail = () => {
             {/* Delete */}
             {showDeleteConfirm ? (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-red-600">Delete this application?</span>
+                <span className="text-sm text-red-600 dark:text-red-400">Delete this application?</span>
                 <Button
                   variant="danger"
                   size="sm"
@@ -214,7 +214,7 @@ const ApplicationDetail = () => {
       </Card>
 
       {/* Meta */}
-      <div className="text-xs text-gray-400 text-right">
+      <div className="text-xs text-ink-muted/70 text-right">
         Created {formatDate(app.createdAt)} · Last updated {timeAgo(app.updatedAt)}
       </div>
     </div>

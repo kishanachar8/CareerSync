@@ -1,10 +1,10 @@
-import axios from 'axios';
+import api from './axiosInstance.js';
 
-const API = '/api/v1/gmail';
+const API = '/gmail';
 
 export const gmailApi = {
-  getStatus:  ()     => axios.get(`${API}/status`),
-  getAuthUrl: ()     => axios.get(`${API}/auth-url`),
-  sync:       ()     => axios.post(`${API}/sync`),
-  disconnect: ()     => axios.delete(`${API}/disconnect`),
+  getStatus:  ()     => api.get(`${API}/status`),
+  getAuthUrl: ()     => api.get(`${API}/auth-url`),
+  sync:       ()     => api.post(`${API}/sync`),
+  disconnect: ()     => api.delete(`${API}/disconnect`),
 };

@@ -9,7 +9,7 @@ import { EMPLOYMENT_TYPES } from '../../../utils/constants.js';
 
 const Toggle = ({ checked, onChange, label }) => (
   <label className="flex items-center justify-between py-2 cursor-pointer select-none">
-    <span className="text-sm text-gray-700">{label}</span>
+    <span className="text-sm text-ink">{label}</span>
     <button
       type="button"
       role="switch"
@@ -17,7 +17,7 @@ const Toggle = ({ checked, onChange, label }) => (
       onClick={() => onChange(!checked)}
       className={[
         'relative w-10 h-5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1',
-        checked ? 'bg-primary-600' : 'bg-gray-200',
+        checked ? 'bg-primary-600' : 'bg-elevated-2',
       ].join(' ')}
     >
       <span
@@ -84,13 +84,13 @@ const PreferencesForm = () => {
         </Card.Header>
         <Card.Body className="space-y-5">
           {saveError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 rounded-lg text-sm text-rose-600 dark:text-rose-300">
               {saveError}
             </div>
           )}
 
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Employment types</p>
+            <p className="text-sm font-medium text-ink mb-2">Employment types</p>
             <div className="flex flex-wrap gap-3">
               {EMPLOYMENT_TYPES.map((type) => (
                 <label key={type} className="flex items-center gap-2 cursor-pointer select-none">
@@ -100,7 +100,7 @@ const PreferencesForm = () => {
                     className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     {...register('jobTypes')}
                   />
-                  <span className="text-sm text-gray-700 capitalize">{type.replace('-', ' ')}</span>
+                  <span className="text-sm text-ink capitalize">{type.replace('-', ' ')}</span>
                 </label>
               ))}
             </div>
@@ -108,14 +108,14 @@ const PreferencesForm = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-ink mb-1">
                 Minimum salary ($/year)
               </label>
               <input
                 type="number"
                 min="0"
                 step="5000"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm text-ink bg-elevated-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 {...register('salaryMin')}
               />
             </div>

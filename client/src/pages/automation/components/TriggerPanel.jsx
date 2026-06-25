@@ -62,17 +62,17 @@ const TriggerPanel = ({ portal = 'naukri', onRunStarted }) => {
   return (
     <Card>
       <Card.Header>
-        <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+        <h2 className="font-semibold text-ink flex items-center gap-2">
           <Zap size={16} className="text-primary-600" />
           Start Auto-Apply
         </h2>
       </Card.Header>
 
       <Card.Body className="space-y-4">
-        <p className="text-xs text-gray-500">{portalCfg.description}</p>
+        <p className="text-xs text-ink-muted">{portalCfg.description}</p>
 
         {!hasCreds && (
-          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+          <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 rounded-lg text-xs text-amber-700 dark:text-amber-300">
             <AlertCircle size={13} className="mt-0.5 shrink-0" />
             Set up your <strong>{portalCfg.label}</strong> credentials first (Step 1 above) before triggering automation.
           </div>
@@ -89,7 +89,7 @@ const TriggerPanel = ({ portal = 'naukri', onRunStarted }) => {
             onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))}
             placeholder={portalCfg.placeholder}
             disabled={!hasCreds}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50 disabled:text-gray-400"
+            className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-elevated-2 disabled:text-ink-muted"
           />
         </div>
 
@@ -102,7 +102,7 @@ const TriggerPanel = ({ portal = 'naukri', onRunStarted }) => {
             onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
             placeholder={portalCfg.locationPlaceholder}
             disabled={!hasCreds}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50"
+            className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-elevated-2"
           />
         </div>
 
@@ -114,7 +114,7 @@ const TriggerPanel = ({ portal = 'naukri', onRunStarted }) => {
               value={form.freshness}
               onChange={(e) => setForm((f) => ({ ...f, freshness: Number(e.target.value) }))}
               disabled={!hasCreds}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-black focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50"
             >
               <option value={0}>Any time</option>
               <option value={1}>Past 24 hours</option>
@@ -132,7 +132,7 @@ const TriggerPanel = ({ portal = 'naukri', onRunStarted }) => {
               value={form.maxJobs}
               onChange={(e) => setForm((f) => ({ ...f, maxJobs: Number(e.target.value) }))}
               disabled={!hasCreds}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-black focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50"
             >
               {[5, 10, 20, 30, 50].map((n) => (
                 <option key={n} value={n}>{n} jobs</option>
@@ -150,7 +150,7 @@ const TriggerPanel = ({ portal = 'naukri', onRunStarted }) => {
             value={form.resumeId}
             onChange={(e) => setForm((f) => ({ ...f, resumeId: e.target.value }))}
             disabled={!hasCreds}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white text-black focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-50"
           >
             <option value="">Select a resume…</option>
             {resumes.map((r) => (
@@ -160,13 +160,13 @@ const TriggerPanel = ({ portal = 'naukri', onRunStarted }) => {
         </div>
 
         {triggerError && (
-          <p className="text-xs text-red-600 flex items-start gap-1">
+          <p className="text-xs text-red-600 dark:text-red-400 flex items-start gap-1">
             <AlertCircle size={12} className="mt-0.5 shrink-0" />{triggerError}
           </p>
         )}
 
         {triggerStatus === 'succeeded' && lastTriggered && (
-          <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+          <div className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900/60 rounded-lg text-sm text-green-700 dark:text-green-300">
             <CheckCircle2 size={15} className="mt-0.5 shrink-0" />
             <div>
               <p className="font-medium">Automation started!</p>
@@ -185,7 +185,7 @@ const TriggerPanel = ({ portal = 'naukri', onRunStarted }) => {
           {isLoading ? 'Starting…' : `Start Auto-Apply on ${portalCfg.label}`}
         </Button>
 
-        <p className="text-xs text-gray-400 text-center">
+        <p className="text-xs text-ink-muted/70 text-center">
           Browser stays open after automation so you can handle any manual steps.
         </p>
       </Card.Body>

@@ -2,6 +2,10 @@ import logger from '../utils/logger.js';
 
 const BASE = 'https://jobicy.com/api/v2/remote-jobs';
 
+function decodeEntities(s = '') {
+  return s.replace(/&amp;/g, '&').replace(/&#8217;/g, '’').replace(/&[a-z]+;/g, ' ');
+}
+
 function normalizeType(types = []) {
   const t = (types[0] || '').toLowerCase();
   if (t.includes('part')) return 'part-time';
@@ -30,7 +34,7 @@ export const searchJobicy = async ({ keywords, count = 50 }) => {
       location: job.jobGeo || 'Remote',
       source: 'jobicy',
       externalId: String(job.id),
-      description: job.jobExcerpt,
+      description: decodeEntities(job.jobExcerpt || ''),
       applyUrl: job.url,
       salary: {
         min: job.annualSalaryMin || undefined,
@@ -39,7 +43,7 @@ export const searchJobicy = async ({ keywords, count = 50 }) => {
         period: 'yearly',
       },
       employmentType: normalizeType(job.jobType),
-      skills: Array.isArray(job.jobIndustry) ? job.jobIndustry.slice(0, 5) : [],
+      skills: Array.isArray(job.jobIndustry) ? job.jobIndustry.map(decodeEntities).slice(0, 5) : [],
       postedAt: job.pubDate ? new Date(job.pubDate) : new Date(),
       isActive: true,
     }));

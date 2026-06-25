@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth.js';
 import Loader from '../components/common/Loader.jsx';
@@ -28,7 +29,7 @@ const AuthLayout = () => {
         {/* Logo */}
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-12">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center shadow-glow">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-brand flex items-center justify-center shadow-glow">
               <Briefcase size={19} className="text-white" />
             </div>
             <div>
@@ -67,18 +68,20 @@ const AuthLayout = () => {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-surface-50">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 bg-canvas">
         <div className="w-full max-w-sm animate-slide-up">
           {/* Mobile logo */}
           <div className="flex items-center gap-2.5 mb-8 lg:hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-gradient-brand flex items-center justify-center">
               <Briefcase size={16} className="text-white" />
             </div>
-            <span className="text-lg font-bold text-gray-900">CareerSync</span>
+            <span className="text-lg font-bold text-ink">CareerSync</span>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg border border-surface-200 p-8">
-            <Outlet />
+          <div className="bg-elevated rounded-2xl shadow-lg border border-line p-6 sm:p-8">
+            <Suspense fallback={<Loader text="Loading…" />}>
+              <Outlet />
+            </Suspense>
           </div>
         </div>
       </div>

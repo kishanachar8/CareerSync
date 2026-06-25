@@ -1,0 +1,51 @@
+name: careersync
+
+# Local "production-like" stack — runs Mongo + Redis as containers so you can
+# smoke-test the Docker images end-to-end before touching AWS. Production on
+# EC2 uses docker-compose.prod.yml instead, which points at managed Atlas /
+# ElastiCache and drops these two services.
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  api:
+    build: ./server
+    restart: unless-stopped
+    env_file: ./server/.env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/careersync
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+      - redis
+
+  web:
+    build:
+      context: ./client
+      args:
+        VITE_API_BASE_URL: http://localhost:5000/api/v1
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+
+volumes:
+  mongo_data:
+  redis_data:

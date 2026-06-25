@@ -65,7 +65,7 @@ const SkillsManager = () => {
 
       <Card.Body className="space-y-4">
         {saveError && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 rounded-lg text-sm text-rose-600 dark:text-rose-300">
             {saveError}
           </div>
         )}
@@ -80,8 +80,8 @@ const SkillsManager = () => {
               onKeyDown={handleKeyDown}
               placeholder="Type a skill and press Enter…"
               className={[
-                'w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500',
-                inputError ? 'border-red-400' : 'border-gray-300',
+                'w-full px-3 py-2 border rounded-lg text-sm text-ink bg-elevated-2 focus:outline-none focus:ring-2 focus:ring-primary-500',
+                inputError ? 'border-rose-400' : 'border-line',
               ].join(' ')}
             />
             {inputError && <p className="mt-1 text-xs text-red-500">{inputError}</p>}
@@ -99,7 +99,7 @@ const SkillsManager = () => {
 
         {/* Skill chips */}
         {skills.length > 0 ? (
-          <div className="flex flex-wrap gap-2 min-h-[48px] p-3 border border-dashed border-gray-200 rounded-lg">
+          <div className="flex flex-wrap gap-2 min-h-[48px] p-3 border border-dashed border-line rounded-lg bg-elevated-2/70">
             {skills.map((skill) => (
               <Badge key={skill} onRemove={() => removeSkill(skill)}>
                 {skill}
@@ -107,12 +107,12 @@ const SkillsManager = () => {
             ))}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-20 border border-dashed border-gray-200 rounded-lg text-sm text-gray-400">
+          <div className="flex items-center justify-center h-20 border border-dashed border-line rounded-lg text-sm text-ink-muted bg-elevated-2/70">
             No skills added yet
           </div>
         )}
 
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-ink-muted/70">
           {skills.length} / {MAX_SKILLS} skills · Press Enter or comma to add
         </p>
       </Card.Body>

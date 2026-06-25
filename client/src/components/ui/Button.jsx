@@ -1,10 +1,10 @@
 const variants = {
-  primary:   'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 shadow-sm hover:shadow-md border-transparent',
-  secondary: 'bg-white text-gray-700 border-surface-200 hover:bg-surface-50 hover:border-surface-300 shadow-xs',
+  primary:   'bg-gradient-brand text-white hover:opacity-90 active:opacity-80 shadow-sm hover:shadow-glow border-transparent',
+  secondary: 'bg-elevated text-ink border-line hover:bg-elevated-2 hover:border-line shadow-xs',
   danger:    'bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800 shadow-sm border-transparent',
-  ghost:     'bg-transparent text-gray-600 hover:bg-surface-100 hover:text-gray-800 border-transparent',
+  ghost:     'bg-transparent text-ink-muted hover:bg-elevated-2 hover:text-ink border-transparent',
   success:   'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm border-transparent',
-  outline:   'bg-transparent text-primary-600 border-primary-300 hover:bg-primary-50 hover:border-primary-400',
+  outline:   'bg-transparent text-primary-600 border-primary-300 hover:bg-primary-50 hover:border-primary-400 dark:hover:bg-primary-950/40',
 };
 
 const sizes = {
@@ -22,6 +22,7 @@ const Button = ({
   size = 'md',
   loading = false,
   disabled = false,
+  fullWidth = false,
   className = '',
   ...props
 }) => (
@@ -31,8 +32,9 @@ const Button = ({
     className={[
       'inline-flex items-center justify-center font-medium rounded-xl border',
       'transition-all duration-150 focus:outline-none focus-visible:ring-2',
-      'focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+      'focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
       'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
+      fullWidth ? 'w-full' : '',
       variants[variant] || variants.primary,
       sizes[size] || sizes.md,
       className,

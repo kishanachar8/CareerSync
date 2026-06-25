@@ -2,6 +2,10 @@ import logger from '../utils/logger.js';
 
 const BASE = 'https://arbeitnow.com/api/job-board-api';
 
+function stripHtml(html = '') {
+  return html.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 2000);
+}
+
 function normalizeType(types = []) {
   const t = (types[0] || '').toLowerCase();
   if (t.includes('part')) return 'part-time';
@@ -34,7 +38,7 @@ export const searchArbeitnow = async ({ keywords, page = 1 }) => {
       location: job.remote ? 'Remote' : (job.location || 'Europe'),
       source: 'arbeitnow',
       externalId: job.slug,
-      description: job.description,
+      description: stripHtml(job.description),
       applyUrl: job.url,
       salary: {},
       employmentType: normalizeType(job.job_types),

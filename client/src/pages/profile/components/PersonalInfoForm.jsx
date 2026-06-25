@@ -90,7 +90,7 @@ const PersonalInfoForm = () => {
       <Card>
         <Card.Body className="flex items-center gap-6">
           <div className="relative shrink-0">
-            <div className="w-20 h-20 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
+            <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-950/40 flex items-center justify-center overflow-hidden">
               {avatarUploading ? (
                 <div className="w-5 h-5 border-2 border-primary-400 border-t-transparent rounded-full animate-spin" />
               ) : avatarSrc ? (
@@ -122,8 +122,8 @@ const PersonalInfoForm = () => {
             />
           </div>
           <div>
-            <p className="font-medium text-gray-900">{profile?.name}</p>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="font-medium text-ink">{profile?.name}</p>
+            <p className="text-sm text-ink-muted mt-0.5">
               JPG, PNG, or WebP · Max 5 MB
             </p>
           </div>
@@ -138,7 +138,7 @@ const PersonalInfoForm = () => {
           </Card.Header>
           <Card.Body className="space-y-4">
             {saveError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 rounded-lg text-sm text-rose-600 dark:text-rose-300">
                 {saveError}
               </div>
             )}
@@ -179,12 +179,12 @@ const PersonalInfoForm = () => {
                 rows={5}
                 placeholder="Describe your professional background, key skills, what you're looking for…"
                 className={[
-                  'w-full px-3 py-2 border rounded-lg text-sm transition-colors resize-y',
-                  'placeholder:text-gray-400',
+                  'w-full px-3 py-2 border rounded-lg text-sm transition-colors resize-y text-ink bg-elevated-2',
+                  'placeholder:text-ink-muted',
                   'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
                   errors['profile.bio']
-                    ? 'border-red-400 bg-red-50 focus:ring-red-400'
-                    : 'border-gray-300 bg-white',
+                    ? 'border-rose-400 bg-rose-50 dark:bg-rose-950/20 focus:ring-rose-400'
+                    : 'border-line',
                 ].join(' ')}
                 {...register('profile.bio', {
                   maxLength: { value: BIO_MAX, message: `Max ${BIO_MAX} characters` },
@@ -196,7 +196,7 @@ const PersonalInfoForm = () => {
                 ) : (
                   <span />
                 )}
-                <span className={`text-xs ${bioValue.length > BIO_MAX * 0.9 ? 'text-amber-500' : 'text-gray-400'}`}>
+                <span className={`text-xs ${bioValue.length > BIO_MAX * 0.9 ? 'text-amber-500' : 'text-ink-muted/70'}`}>
                   {bioValue.length} / {BIO_MAX}
                 </span>
               </div>

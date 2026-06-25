@@ -1,8 +1,10 @@
+import crypto from 'crypto';
 import asyncHandler from '../../utils/asyncHandler.js';
 import ApiError from '../../utils/ApiError.js';
 import ApiResponse from '../../utils/ApiResponse.js';
 import { COOKIE_OPTIONS } from '../../constants/index.js';
 import { verifyRefreshToken } from '../../utils/token.js';
+import env from '../../config/env.js';
 import {
   registerService,
   loginService,
@@ -10,7 +12,16 @@ import {
   logoutService,
   verifyEmailService,
   resendVerificationService,
+  getGoogleAuthUrlService,
+  googleCallbackService,
 } from './auth.service.js';
+
+const OAUTH_STATE_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'none',
+  maxAge: 5 * 60 * 1000,
+};
 
 // POST /api/v1/auth/register
 export const register = asyncHandler(async (req, res) => {
@@ -75,4 +86,39 @@ export const verifyEmail = asyncHandler(async (req, res) => {
 export const resendVerification = asyncHandler(async (req, res) => {
   const result = await resendVerificationService(req.body.email);
   res.status(200).json(new ApiResponse(200, null, result.message));
+});
+
+const resolveGoogleCallbackUrl = (req) =>
+  env.GOOGLE_AUTH_REDIRECT_URI || `${req.protocol}://${req.get('host')}/api/v1/auth/google/callback`;
+
+// GET /api/v1/auth/google — kicks off "Sign in with Google" (full browser redirect)
+export const googleAuthRedirect = asyncHandler(async (req, res) => {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+    throw new ApiError(501, 'Google sign-in is not configured on this server.');
+  }
+  const state = crypto.randomBytes(16).toString('hex');
+  const callbackUrl = resolveGoogleCallbackUrl(req);
+  res.cookie('oauth_state', state, OAUTH_STATE_COOKIE_OPTIONS);
+  res.redirect(getGoogleAuthUrlService(state, callbackUrl));
+});
+
+// GET /api/v1/auth/google/callback (called by Google, not the frontend)
+export const googleAuthCallback = asyncHandler(async (req, res) => {
+  const { code, state, error } = req.query;
+  const expectedState = req.cookies?.oauth_state;
+  res.clearCookie('oauth_state', OAUTH_STATE_COOKIE_OPTIONS);
+
+  if (error || !code || !state || state !== expectedState) {
+    return res.redirect(`${env.CLIENT_URL}/login?error=oauth_failed`);
+  }
+
+  try {
+    const callbackUrl = resolveGoogleCallbackUrl(req);
+    const { refreshToken } = await googleCallbackService(code, callbackUrl);
+    res
+      .cookie('refreshToken', refreshToken, COOKIE_OPTIONS)
+      .redirect(`${env.CLIENT_URL}/dashboard`);
+  } catch {
+    res.redirect(`${env.CLIENT_URL}/login?error=oauth_failed`);
+  }
 });

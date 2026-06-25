@@ -108,15 +108,15 @@ const ExperienceCard = ({ exp, onEdit, onDelete }) => (
       <Briefcase size={18} className="text-primary-600" />
     </div>
     <div className="flex-1 min-w-0">
-      <p className="font-medium text-gray-900 truncate">{exp.role}</p>
-      <p className="text-sm text-gray-600">{exp.company}</p>
-      <p className="text-xs text-gray-400 mt-0.5">
+      <p className="font-medium text-ink truncate">{exp.role}</p>
+      <p className="text-sm text-ink-muted">{exp.company}</p>
+      <p className="text-xs text-ink-muted/70 mt-0.5">
         {formatDate(exp.from, { year: 'numeric', month: 'short' })}
         {' — '}
         {exp.current ? 'Present' : exp.to ? formatDate(exp.to, { year: 'numeric', month: 'short' }) : ''}
       </p>
       {exp.description && (
-        <p className="text-sm text-gray-500 mt-2 line-clamp-2">{exp.description}</p>
+        <p className="text-sm text-ink-muted mt-2 line-clamp-2">{exp.description}</p>
       )}
     </div>
     <div className="flex gap-1 shrink-0">
@@ -218,8 +218,8 @@ const ExperienceManager = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <Briefcase size={36} className="text-gray-300 mb-3" />
-              <p className="text-sm text-gray-500">No experience added yet</p>
+              <Briefcase size={36} className="text-ink-muted/50 mb-3" />
+              <p className="text-sm text-ink-muted">No experience added yet</p>
               <button
                 type="button"
                 onClick={() => setModal({ open: true, editing: null })}

@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { google } from 'googleapis';
 import User from '../../models/User.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../utils/token.js';
 import { sendVerificationEmail } from '../../services/email.service.js';
@@ -126,6 +127,59 @@ export const verifyEmailService = async (rawToken) => {
   await user.save({ validateBeforeSave: false });
 
   return { message: 'Email verified successfully. You can now sign in.' };
+};
+
+// ─── Google OAuth ("Sign in with Google") ──────────────────────────────────────
+
+const makeGoogleAuthClient = (redirectUri) =>
+  new google.auth.OAuth2(env.GOOGLE_CLIENT_ID, env.GOOGLE_CLIENT_SECRET, redirectUri || env.GOOGLE_AUTH_REDIRECT_URI);
+
+export const getGoogleAuthUrlService = (state, redirectUri) => {
+  const client = makeGoogleAuthClient(redirectUri);
+  return client.generateAuthUrl({
+    access_type: 'online',
+    scope: ['openid', 'email', 'profile'],
+    prompt: 'select_account',
+    state,
+  });
+};
+
+export const googleCallbackService = async (code, redirectUri) => {
+  const client = makeGoogleAuthClient(redirectUri);
+  const { tokens } = await client.getToken(code);
+  client.setCredentials(tokens);
+
+  const oauth2 = google.oauth2({ version: 'v2', auth: client });
+  const { data: profile } = await oauth2.userinfo.get();
+  if (!profile.email) throw new ApiError(400, 'Google account has no associated email');
+
+  const email = profile.email.toLowerCase();
+  let user = await User.findOne({ email }).select('+refreshTokenHash');
+
+  if (user) {
+    // Link the Google identity to an existing email/password account
+    if (!user.googleId) {
+      user.googleId = profile.id;
+      if (profile.verified_email) user.isEmailVerified = true;
+    }
+  } else {
+    user = new User({
+      name: profile.name || email.split('@')[0],
+      email,
+      googleId: profile.id,
+      isEmailVerified: true,
+      profile: profile.picture ? { avatar: profile.picture } : undefined,
+    });
+  }
+
+  // Same issuance pattern as loginService
+  const jti = crypto.randomBytes(32).toString('hex');
+  const accessToken = signAccessToken({ sub: user._id.toString(), role: user.role });
+  const refreshToken = signRefreshToken({ sub: user._id.toString(), jti });
+  user.refreshTokenHash = hashToken(jti);
+  await user.save({ validateBeforeSave: false });
+
+  return { accessToken, refreshToken, user: sanitizeUser(user) };
 };
 
 // ─── Resend Verification Email ─────────────────────────────────────────────────

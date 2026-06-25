@@ -63,6 +63,9 @@ export const MAX_RESUMES_PER_USER = 5;
 export const COOKIE_OPTIONS = Object.freeze({
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
+  // SameSite=None requires Secure — Chrome silently drops the cookie without it.
+  // Only the OAuth state cookie (a separate options object) needs 'none'; this
+  // is the regular session cookie, so it should follow the dev/prod split.
   sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 });

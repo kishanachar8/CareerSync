@@ -9,6 +9,12 @@ import { UploadCloud, FileText, X } from 'lucide-react';
 const MAX_SIZE_MB = 10;
 const MAX_RESUMES = 5;
 
+const validate = (file) => {
+  if (file.type !== 'application/pdf') return 'Only PDF files are accepted.';
+  if (file.size > MAX_SIZE_MB * 1024 * 1024) return `File must be under ${MAX_SIZE_MB} MB.`;
+  return null;
+};
+
 const ResumeUploadZone = ({ currentCount }) => {
   const dispatch = useDispatch();
   const inputRef = useRef(null);
@@ -20,12 +26,6 @@ const ResumeUploadZone = ({ currentCount }) => {
   const [error, setError] = useState('');
 
   const atLimit = currentCount >= MAX_RESUMES;
-
-  const validate = (file) => {
-    if (file.type !== 'application/pdf') return 'Only PDF files are accepted.';
-    if (file.size > MAX_SIZE_MB * 1024 * 1024) return `File must be under ${MAX_SIZE_MB} MB.`;
-    return null;
-  };
 
   const handleFile = (file) => {
     if (!file) return;
@@ -64,7 +64,7 @@ const ResumeUploadZone = ({ currentCount }) => {
 
   if (atLimit) {
     return (
-      <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-sm text-yellow-800">
+      <div className="flex items-center gap-3 p-4 bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900/60 rounded-xl text-sm text-yellow-800 dark:text-yellow-300">
         <FileText size={16} className="shrink-0" />
         <span>You have reached the maximum of {MAX_RESUMES} resumes. Delete one to upload a new version.</span>
       </div>
@@ -81,8 +81,8 @@ const ResumeUploadZone = ({ currentCount }) => {
         onClick={() => !selectedFile && inputRef.current?.click()}
         className={[
           'relative flex flex-col items-center justify-center gap-3 p-8 rounded-xl border-2 border-dashed transition-colors',
-          dragging ? 'border-primary-500 bg-primary-50' : 'border-gray-300 bg-gray-50/50',
-          !selectedFile ? 'cursor-pointer hover:border-primary-400 hover:bg-primary-50/30' : '',
+          dragging ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/20' : 'border-line bg-elevated-2',
+          !selectedFile ? 'cursor-pointer hover:border-primary-400 hover:bg-primary-50/30 dark:hover:bg-primary-950/20' : '',
         ].join(' ')}
       >
         <input
@@ -99,13 +99,13 @@ const ResumeUploadZone = ({ currentCount }) => {
               <FileText size={20} className="text-red-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{selectedFile.name}</p>
-              <p className="text-xs text-gray-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+              <p className="text-sm font-medium text-ink truncate">{selectedFile.name}</p>
+              <p className="text-xs text-ink-muted">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
             </div>
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setError(''); }}
-              className="p-1 rounded-lg text-gray-400 hover:text-gray-600"
+              className="p-1 rounded-lg text-ink-muted hover:text-ink"
               aria-label="Remove file"
             >
               <X size={16} />
@@ -117,11 +117,11 @@ const ResumeUploadZone = ({ currentCount }) => {
               <UploadCloud size={24} className="text-primary-600" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-ink">
                 Drag & drop your resume, or{' '}
                 <span className="text-primary-600">browse</span>
               </p>
-              <p className="text-xs text-gray-400 mt-1">PDF only · Max {MAX_SIZE_MB} MB · {currentCount}/{MAX_RESUMES} used</p>
+              <p className="text-xs text-ink-muted/70 mt-1">PDF only · Max {MAX_SIZE_MB} MB · {currentCount}/{MAX_RESUMES} used</p>
             </div>
           </>
         )}

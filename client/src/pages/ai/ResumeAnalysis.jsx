@@ -18,7 +18,7 @@ const Section = ({ icon: Icon, title, items, color }) => {
       </h3>
       <ul className="space-y-1.5">
         {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+          <li key={i} className="flex items-start gap-2 text-sm text-ink">
             <span className="mt-0.5 shrink-0">•</span>{item}
           </li>
         ))}
@@ -48,13 +48,13 @@ const ResumeAnalysis = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
           <Sparkles size={24} className="text-primary-600" />
           Resume Analysis
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-ink-muted mt-1">
           AI-powered match analysis — see exactly how well your resume fits a job.
         </p>
       </div>
@@ -64,11 +64,11 @@ const ResumeAnalysis = () => {
         <Card.Body className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Your Resume</label>
+              <label className="block text-sm font-medium text-ink mb-1.5">Your Resume</label>
               <select
                 value={resumeId}
                 onChange={(e) => setResumeId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Select a resume…</option>
                 {resumes.map((r) => (
@@ -77,11 +77,11 @@ const ResumeAnalysis = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Job to Match</label>
+              <label className="block text-sm font-medium text-ink mb-1.5">Job to Match</label>
               <select
                 value={jobId}
                 onChange={(e) => setJobId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="">Select a job…</option>
                 {jobs.map((j) => (
@@ -118,7 +118,7 @@ const ResumeAnalysis = () => {
           <div className="lg:col-span-1">
             <ScoreGauge score={analysis.matchScore} recommendation={analysis.recommendation} />
             {analysis.experienceAlignment && (
-              <p className="mt-3 text-xs text-center text-gray-500 italic">
+              <p className="mt-3 text-xs text-center text-ink-muted italic">
                 {analysis.experienceAlignment}
               </p>
             )}
@@ -129,13 +129,13 @@ const ResumeAnalysis = () => {
             {analysis.summary && (
               <Card>
                 <Card.Body>
-                  <p className="text-sm text-gray-700 leading-relaxed">{analysis.summary}</p>
+                  <p className="text-sm text-ink leading-relaxed">{analysis.summary}</p>
                   {analysis.fallback && (
                     <p className="text-xs text-amber-600 mt-2">
                       ⚠ Keyword-based result only.{' '}
                       {analysis.fallbackReason
                         ? analysis.fallbackReason
-                        : 'Add OPENAI_API_KEY to your .env for detailed AI analysis.'}
+                        : 'AI analysis is temporarily unavailable — showing a keyword-based result instead.'}
                     </p>
                   )}
                 </Card.Body>

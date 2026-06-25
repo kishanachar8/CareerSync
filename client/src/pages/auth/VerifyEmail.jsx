@@ -51,7 +51,7 @@ const VerifyEmail = () => {
     return (
       <div className="text-center space-y-3 py-4">
         <Loader className="mx-auto text-primary-600 animate-spin" size={36} />
-        <p className="text-gray-500 text-sm">Verifying your email…</p>
+        <p className="text-ink-muted text-sm">Verifying your email…</p>
       </div>
     );
   }
@@ -59,12 +59,12 @@ const VerifyEmail = () => {
   if (state.status === STATUS.SUCCESS) {
     return (
       <div className="text-center space-y-4 py-4">
-        <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-          <CheckCircle className="text-green-600" size={28} />
+        <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-950/40 rounded-full flex items-center justify-center mx-auto">
+          <CheckCircle className="text-emerald-600 dark:text-emerald-400" size={28} />
         </div>
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Email verified!</h2>
-          <p className="text-sm text-gray-500 mt-2">{state.message}</p>
+          <h2 className="text-xl font-semibold text-ink">Email verified!</h2>
+          <p className="text-sm text-ink-muted mt-2">{state.message}</p>
         </div>
         <Link to="/login">
           <Button size="lg" className="mx-auto">Continue to sign in</Button>
@@ -75,16 +75,16 @@ const VerifyEmail = () => {
 
   return (
     <div className="text-center space-y-4 py-4">
-      <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-        <XCircle className="text-red-500" size={28} />
+      <div className="w-14 h-14 bg-rose-100 dark:bg-rose-950/40 rounded-full flex items-center justify-center mx-auto">
+        <XCircle className="text-rose-500" size={28} />
       </div>
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">Verification failed</h2>
-        <p className="text-sm text-gray-500 mt-2">{state.message}</p>
+        <h2 className="text-xl font-semibold text-ink">Verification failed</h2>
+        <p className="text-sm text-ink-muted mt-2">{state.message}</p>
       </div>
 
       {resendState.sent ? (
-        <p className="text-sm text-green-600">A new verification link has been sent.</p>
+        <p className="text-sm text-emerald-600 dark:text-emerald-400">A new verification link has been sent.</p>
       ) : (
         <div className="space-y-2">
           <Button
@@ -96,12 +96,12 @@ const VerifyEmail = () => {
             Resend verification email
           </Button>
           {resendState.error && (
-            <p className="text-xs text-red-500">{resendState.error}</p>
+            <p className="text-xs text-rose-500">{resendState.error}</p>
           )}
         </div>
       )}
 
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-ink-muted">
         <Link to="/login" className="font-medium text-primary-600 hover:text-primary-700">
           Back to sign in
         </Link>

@@ -70,31 +70,31 @@ const LiveProgress = ({ runId, onComplete }) => {
   const capturedEntries = Object.entries(capturedFields).filter(([, v]) => v != null && v !== '');
 
   return (
-    <Card className="border-blue-200 bg-blue-50/40">
+    <Card className="border-blue-200 dark:border-blue-900/60 bg-blue-50/40 dark:bg-blue-950/30">
       <Card.Body className="space-y-3">
         {/* Header */}
         <div className="flex items-center gap-2">
           {status === 'running'
             ? <Loader2 size={16} className="text-blue-600 animate-spin shrink-0" />
             : <CheckCircle2 size={16} className="text-green-600 shrink-0" />}
-          <span className="text-sm font-semibold text-gray-900">
+          <span className="text-sm font-semibold text-ink">
             {status === 'running' ? 'Automation in progress…' : 'Run complete'}
           </span>
         </div>
 
         {/* Step message */}
         {summary.step && (
-          <p className="text-xs text-blue-700 bg-blue-100 px-3 py-1.5 rounded-lg">{summary.step}</p>
+          <p className="text-xs text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/60 px-3 py-1.5 rounded-lg">{summary.step}</p>
         )}
 
         {/* Progress bar */}
         {total > 0 && (
           <div>
-            <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <div className="flex justify-between text-xs text-ink-muted mb-1">
               <span>{done}/{total} jobs processed</span>
               <span>{pct}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-elevated-2 rounded-full h-2">
               <div
                 className="bg-blue-500 h-2 rounded-full transition-all duration-500"
                 style={{ width: `${pct}%` }}
@@ -106,12 +106,12 @@ const LiveProgress = ({ runId, onComplete }) => {
         {/* Stats */}
         {total > 0 && (
           <div className="flex flex-wrap gap-4 text-xs">
-            <span className="text-green-700 font-medium">{applied} applied</span>
+            <span className="text-green-700 dark:text-green-400 font-medium">{applied} applied</span>
             {external > 0 && (
-              <span className="text-purple-600 font-medium">{external} manual tabs open</span>
+              <span className="text-purple-600 dark:text-purple-400 font-medium">{external} manual tabs open</span>
             )}
-            <span className="text-yellow-600">{skipped} skipped</span>
-            <span className="text-red-500">{failed} failed</span>
+            <span className="text-yellow-600 dark:text-yellow-400">{skipped} skipped</span>
+            <span className="text-red-500 dark:text-red-400">{failed} failed</span>
           </div>
         )}
 
@@ -130,16 +130,16 @@ const LiveProgress = ({ runId, onComplete }) => {
 
         {/* External jobs — opened for manual apply */}
         {externalJobs.length > 0 && (
-          <div className="border border-purple-200 rounded-lg p-3 bg-purple-50/60 space-y-2">
-            <p className="text-xs font-semibold text-purple-800 flex items-center gap-1">
+          <div className="border border-purple-200 dark:border-purple-900/60 rounded-lg p-3 bg-purple-50/60 dark:bg-purple-950/30 space-y-2">
+            <p className="text-xs font-semibold text-purple-800 dark:text-purple-300 flex items-center gap-1">
               <ExternalLink size={12} />
               {externalJobs.length} tab{externalJobs.length > 1 ? 's' : ''} opened — apply manually
             </p>
             {externalJobs.map((j, i) => (
-              <div key={i} className="text-xs text-purple-700 flex items-start gap-1">
+              <div key={i} className="text-xs text-purple-700 dark:text-purple-300 flex items-start gap-1">
                 <span className="mt-0.5 shrink-0">•</span>
                 <span className="font-medium">{j.title}</span>
-                {j.company && <span className="text-purple-500">@ {j.company}</span>}
+                {j.company && <span className="text-purple-500 dark:text-purple-400">@ {j.company}</span>}
               </div>
             ))}
           </div>
@@ -147,8 +147,8 @@ const LiveProgress = ({ runId, onComplete }) => {
 
         {/* Captured fields — learned from user input */}
         {capturedEntries.length > 0 && (
-          <div className="border border-emerald-200 rounded-lg p-3 bg-emerald-50/60 space-y-1.5">
-            <p className="text-xs font-semibold text-emerald-800 flex items-center gap-1">
+          <div className="border border-emerald-200 dark:border-emerald-900/60 rounded-lg p-3 bg-emerald-50/60 dark:bg-emerald-950/30 space-y-1.5">
+            <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
               <Brain size={12} />
               Learned from your inputs — will auto-fill next run
             </p>
@@ -164,7 +164,7 @@ const LiveProgress = ({ runId, onComplete }) => {
 
         {/* Error */}
         {data.error && (
-          <p className="text-xs text-red-600 flex items-start gap-1">
+          <p className="text-xs text-red-600 dark:text-red-400 flex items-start gap-1">
             <AlertCircle size={12} className="mt-0.5 shrink-0" />{data.error}
           </p>
         )}
@@ -207,9 +207,9 @@ const RunRow = ({ run }) => {
   const d = detail || run;
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
+    <div className="border border-line rounded-xl overflow-hidden bg-elevated">
       <div
-        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
+        className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-elevated-2 transition-colors"
         onClick={handleExpand}
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -217,16 +217,16 @@ const RunRow = ({ run }) => {
             {cfg.icon}{cfg.label}
           </span>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate flex items-center gap-1.5">
+            <p className="text-sm font-medium text-ink truncate flex items-center gap-1.5">
               {PORTAL_ICON[run.portal] || PORTAL_ICON.naukri}
               "{run.keywords}"{run.location ? ` · ${run.location}` : ''}
             </p>
-            <p className="text-xs text-gray-400">{timeAgo(run.createdAt)}</p>
+            <p className="text-xs text-ink-muted/70">{timeAgo(run.createdAt)}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs text-gray-500 hidden sm:block">
+          <span className="text-xs text-ink-muted hidden sm:block">
             {run.summary?.applied ?? 0} applied / {run.summary?.total ?? 0}
           </span>
           {run.status === 'running' && (
@@ -234,14 +234,14 @@ const RunRow = ({ run }) => {
               Cancel
             </Button>
           )}
-          {expanded ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
+          {expanded ? <ChevronUp size={14} className="text-ink-muted" /> : <ChevronDown size={14} className="text-ink-muted" />}
         </div>
       </div>
 
       {expanded && (
-        <div className="border-t border-gray-100 bg-gray-50/50 px-4 py-3 space-y-4">
+        <div className="border-t border-line bg-elevated-2/60 px-4 py-3 space-y-4">
           {loading ? (
-            <p className="text-xs text-gray-400 text-center py-3">Loading…</p>
+            <p className="text-xs text-ink-muted/70 text-center py-3">Loading…</p>
           ) : (
             <>
               {/* Per-job results */}
@@ -250,8 +250,8 @@ const RunRow = ({ run }) => {
                   {d.jobResults.map((jr, i) => (
                     <div key={i} className="flex items-center justify-between gap-2 text-xs">
                       <div className="min-w-0">
-                        <p className="font-medium text-gray-800 truncate">{jr.title || '—'}</p>
-                        {jr.company && <p className="text-gray-500">{jr.company}</p>}
+                        <p className="font-medium text-ink truncate">{jr.title || '—'}</p>
+                        {jr.company && <p className="text-ink-muted">{jr.company}</p>}
                         {jr.externalUrl && (
                           <a href={jr.externalUrl} target="_blank" rel="noreferrer"
                              className="text-purple-600 underline flex items-center gap-0.5 mt-0.5">
@@ -273,7 +273,7 @@ const RunRow = ({ run }) => {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-gray-400 text-center py-2">No job details yet.</p>
+                <p className="text-xs text-ink-muted/70 text-center py-2">No job details yet.</p>
               )}
 
               {/* External tabs opened for manual apply */}
@@ -361,12 +361,12 @@ const RunHistory = ({ refreshTrigger, portal }) => {
 
         <Card.Body>
           {runsStatus === 'loading' && !runs.length ? (
-            <p className="text-sm text-gray-400 text-center py-8">Loading…</p>
+            <p className="text-sm text-ink-muted/70 text-center py-8">Loading…</p>
           ) : runs.length === 0 ? (
             <div className="text-center py-10">
               <Bot size={32} className="mx-auto text-gray-300 mb-3" />
-              <p className="text-sm text-gray-500">No automation runs yet.</p>
-              <p className="text-xs text-gray-400 mt-1">Complete Steps 1 &amp; 2 above to start.</p>
+              <p className="text-sm text-ink-muted">No automation runs yet.</p>
+              <p className="text-xs text-ink-muted/70 mt-1">Complete Steps 1 &amp; 2 above to start.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -374,7 +374,7 @@ const RunHistory = ({ refreshTrigger, portal }) => {
                 <RunRow key={run._id} run={run} />
               ))}
               {runsPagination?.pages > 1 && (
-                <p className="text-xs text-center text-gray-400 pt-2">
+                <p className="text-xs text-center text-ink-muted/70 pt-2">
                   Showing {runs.length} of {runsPagination.total} runs
                 </p>
               )}

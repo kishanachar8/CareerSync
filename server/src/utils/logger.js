@@ -14,8 +14,13 @@ const logFormat = printf(({ level, message, timestamp, stack }) => {
   return `${timestamp} [${level}]: ${stack || message}`;
 });
 
+// 'http' (not 'warn') in production — this is the level on the *logger
+// itself*, which filters before any transport sees the entry. Console output
+// is the only thing CloudWatch/`docker logs` captures in a containerized
+// deploy, so startup confirmations (info) and request logs (http) need to
+// stay visible there; only verbose/debug noise is suppressed.
 const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
+  level: process.env.NODE_ENV === 'production' ? 'http' : 'debug',
   format: combine(
     timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     errors({ stack: true }),

@@ -1,0 +1,33 @@
+name: careersync
+
+# Runs on each EC2 instance in the Auto Scaling Group. Images are pulled from
+# ECR (built by CI), and MONGO_URI/REDIS_HOST point at MongoDB Atlas /
+# ElastiCache rather than local containers. The actual values live in
+# /opt/careersync/.env.production on the instance — never committed to git.
+services:
+  api:
+    image: ${ECR_REGISTRY}/careersync-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env.production
+    ports:
+      - "5000:5000"
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /careersync/api
+        awslogs-create-group: "true"
+        awslogs-stream: ${INSTANCE_ID}
+
+  web:
+    image: ${ECR_REGISTRY}/careersync-web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /careersync/web
+        awslogs-create-group: "true"
+        awslogs-stream: ${INSTANCE_ID}

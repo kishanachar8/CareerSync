@@ -87,7 +87,7 @@ const NaukriSetup = () => {
     if (!hasCredentials) return null;
     if (creds.lastVerifiedAt) {
       return (
-        <span className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+        <span className="inline-flex items-center gap-1 text-xs text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/40 px-2 py-0.5 rounded-full">
           <CheckCircle2 size={11} />
           Verified {new Date(creds.lastVerifiedAt).toLocaleDateString()}
         </span>
@@ -95,13 +95,13 @@ const NaukriSetup = () => {
     }
     if (creds.lastLoginError) {
       return (
-        <span className="inline-flex items-center gap-1 text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+        <span className="inline-flex items-center gap-1 text-xs text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full">
           <XCircle size={11} />Login failed last time
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+      <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full">
         <AlertCircle size={11} />Not yet verified
       </span>
     );
@@ -112,12 +112,12 @@ const NaukriSetup = () => {
       <Card.Header>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <h2 className="font-semibold text-ink flex items-center gap-2">
               <img src="https://static.naukimg.com/s/0/0/i/new-global/naukri-logo.svg"
                 alt="Naukri" className="h-5 object-contain" onError={(e) => { e.target.style.display='none'; }} />
               Naukri Setup
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-ink-muted mt-0.5">
               Your credentials are encrypted with AES-256-GCM before storage.
             </p>
           </div>
@@ -127,7 +127,7 @@ const NaukriSetup = () => {
 
       <Card.Body className="space-y-5">
         {/* Security notice */}
-        <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-700">
+        <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/60 rounded-lg text-xs text-blue-700 dark:text-blue-300">
           <Shield size={13} className="mt-0.5 shrink-0" />
           <span>
             Credentials are stored encrypted. The automation logs into Naukri on your behalf
@@ -138,10 +138,10 @@ const NaukriSetup = () => {
         {hasCredentials && !editing ? (
           /* ─── Saved state ─── */
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-elevated-2 rounded-lg">
               <div>
-                <p className="text-sm font-medium text-gray-900">{creds.username}</p>
-                <p className="text-xs text-gray-400 mt-0.5">Password: ••••••••</p>
+                <p className="text-sm font-medium text-ink">{creds.username}</p>
+                <p className="text-xs text-ink-muted/70 mt-0.5">Password: ••••••••</p>
               </div>
               <div className="flex gap-2">
                 <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>Edit</Button>
@@ -152,28 +152,28 @@ const NaukriSetup = () => {
             </div>
 
             <div className="grid grid-cols-4 gap-3 text-center text-sm">
-              <div className="p-2 bg-gray-50 rounded-lg">
-                <div className="font-semibold text-gray-800">{creds.preferences?.noticePeriodDays ?? '—'}d</div>
-                <div className="text-xs text-gray-400">Notice Period</div>
+              <div className="p-2 bg-elevated-2 rounded-lg">
+                <div className="font-semibold text-ink">{creds.preferences?.noticePeriodDays ?? '—'}d</div>
+                <div className="text-xs text-ink-muted/70">Notice Period</div>
               </div>
-              <div className="p-2 bg-gray-50 rounded-lg">
-                <div className="font-semibold text-gray-800">{creds.preferences?.currentCtcLakhs ?? '—'} L</div>
-                <div className="text-xs text-gray-400">Current CTC</div>
+              <div className="p-2 bg-elevated-2 rounded-lg">
+                <div className="font-semibold text-ink">{creds.preferences?.currentCtcLakhs ?? '—'} L</div>
+                <div className="text-xs text-ink-muted/70">Current CTC</div>
               </div>
-              <div className="p-2 bg-gray-50 rounded-lg">
-                <div className="font-semibold text-gray-800">{creds.preferences?.expectedCtcLakhs ?? '—'} L</div>
-                <div className="text-xs text-gray-400">Expected CTC</div>
+              <div className="p-2 bg-elevated-2 rounded-lg">
+                <div className="font-semibold text-ink">{creds.preferences?.expectedCtcLakhs ?? '—'} L</div>
+                <div className="text-xs text-ink-muted/70">Expected CTC</div>
               </div>
-              <div className="p-2 bg-gray-50 rounded-lg">
-                <div className="font-semibold text-gray-800">{creds.preferences?.yearsOfExperience ?? '—'} yr</div>
-                <div className="text-xs text-gray-400">Experience</div>
+              <div className="p-2 bg-elevated-2 rounded-lg">
+                <div className="font-semibold text-ink">{creds.preferences?.yearsOfExperience ?? '—'} yr</div>
+                <div className="text-xs text-ink-muted/70">Experience</div>
               </div>
             </div>
 
             {/* Learned fields from previous runs */}
             {creds.capturedFields && Object.keys(creds.capturedFields).length > 0 && (
-              <div className="border border-emerald-200 rounded-lg p-3 bg-emerald-50 space-y-2">
-                <p className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
+              <div className="border border-emerald-200 dark:border-emerald-900/60 rounded-lg p-3 bg-emerald-50 dark:bg-emerald-950/30 space-y-2">
+                <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
                   <Brain size={13} />
                   Learned from previous runs — auto-filled during apply
                 </p>
@@ -181,12 +181,12 @@ const NaukriSetup = () => {
                   {Object.entries(creds.capturedFields)
                     .filter(([, v]) => v != null && v !== '')
                     .map(([k, v]) => (
-                      <span key={k} className="text-xs bg-white border border-emerald-200 text-emerald-700 rounded-full px-2.5 py-0.5">
+                      <span key={k} className="text-xs bg-elevated border border-emerald-200 dark:border-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-full px-2.5 py-0.5">
                         {prettifyKey(k)}: <strong>{String(v)}</strong>
                       </span>
                     ))}
                 </div>
-                <p className="text-xs text-emerald-600">
+                <p className="text-xs text-emerald-600 dark:text-emerald-400">
                   These values are filled automatically. They update as you fill in new fields.
                 </p>
               </div>
@@ -206,12 +206,12 @@ const NaukriSetup = () => {
                   : 'Test Login Now'}
               </Button>
               {loginTestStatus === 'succeeded' && (
-                <p className="mt-2 text-xs text-green-600 flex items-center gap-1">
+                <p className="mt-2 text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
                   <CheckCircle2 size={12} />Login verified successfully
                 </p>
               )}
               {loginTestStatus === 'failed' && (
-                <p className="mt-2 text-xs text-red-600 flex items-center gap-1">
+                <p className="mt-2 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
                   <XCircle size={12} />{loginTestError}
                 </p>
               )}
@@ -222,7 +222,7 @@ const NaukriSetup = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-ink mb-1.5">
                   Naukri Email / Mobile
                 </label>
                 <input
@@ -230,7 +230,7 @@ const NaukriSetup = () => {
                   value={form.username}
                   onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
                   placeholder="your@email.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2 border border-line rounded-lg text-sm bg-elevated text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
               <div>
@@ -241,7 +241,7 @@ const NaukriSetup = () => {
                     value={form.password}
                     onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                     placeholder={hasCredentials ? 'Enter new password to change' : 'Your Naukri password'}
-                    className="w-full px-3 py-2 pr-9 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 pr-9 border border-line rounded-lg text-sm bg-elevated text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                   <button
                     type="button"
@@ -258,11 +258,11 @@ const NaukriSetup = () => {
               <p className="text-xs font-medium text-gray-600 mb-3">Apply Preferences</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Notice Period</label>
+                  <label className="block text-xs text-ink-muted mb-1">Notice Period</label>
                   <select
                     value={form.noticePeriodDays}
                     onChange={(e) => setForm((f) => ({ ...f, noticePeriodDays: Number(e.target.value) }))}
-                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm bg-white text-black"
                   >
                     {NOTICE_OPTIONS.map((d) => (
                       <option key={d} value={d}>{d === 0 ? 'Immediate' : `${d} days`}</option>
@@ -270,37 +270,37 @@ const NaukriSetup = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Years of Experience</label>
+                  <label className="block text-xs text-ink-muted mb-1">Years of Experience</label>
                   <input
                     type="number" min="0" max="60" step="1"
                     value={form.yearsOfExperience}
                     onChange={(e) => setForm((f) => ({ ...f, yearsOfExperience: Number(e.target.value) }))}
-                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm bg-white text-black"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Current CTC (L)</label>
+                  <label className="block text-xs text-ink-muted mb-1">Current CTC (L)</label>
                   <input
                     type="number" min="0" step="0.5"
                     value={form.currentCtcLakhs}
                     onChange={(e) => setForm((f) => ({ ...f, currentCtcLakhs: Number(e.target.value) }))}
-                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm bg-white text-black"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-500 mb-1">Expected CTC (L)</label>
+                  <label className="block text-xs text-ink-muted mb-1">Expected CTC (L)</label>
                   <input
                     type="number" min="0" step="0.5"
                     value={form.expectedCtcLakhs}
                     onChange={(e) => setForm((f) => ({ ...f, expectedCtcLakhs: Number(e.target.value) }))}
-                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
+                    className="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm bg-white text-black"
                   />
                 </div>
               </div>
             </div>
 
             {credentialsError && (
-              <p className="text-xs text-red-600">{credentialsError}</p>
+              <p className="text-xs text-red-600 dark:text-red-400">{credentialsError}</p>
             )}
 
             <div className="flex gap-2">

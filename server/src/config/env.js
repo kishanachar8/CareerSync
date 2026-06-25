@@ -38,21 +38,41 @@ const schema = Joi.object({
   EMAIL_FROM: Joi.string().allow('').default('CareerSync <no-reply@careersync.io>'),
 
   CLIENT_URL: Joi.string().uri().default('http://localhost:5173'),
+  // Public base URL of this API, used to build absolute links to locally-stored
+  // files (dev-only fallback — Cloudinary is required in production).
+  API_PUBLIC_URL: Joi.string().uri().default(''),
 
   // Automation: AES-256-GCM keys for encrypting credentials and screening answers at rest
-  CREDENTIALS_ENCRYPTION_KEY: Joi.string().min(32).default('change-me-in-production-min-32-chars!!'),
+  CREDENTIALS_ENCRYPTION_KEY: Joi.string().min(32).required(),
   ANSWER_ENCRYPTION_KEY:      Joi.string().min(32).allow('').default(''),
 
-  // Gmail OAuth (Google Cloud Console → OAuth 2.0 credentials)
+  // Google OAuth (Google Cloud Console → OAuth 2.0 credentials)
+  // Shared client ID/secret — Gmail sync and "Sign in with Google" use separate redirect URIs.
   GOOGLE_CLIENT_ID:     Joi.string().allow('').default(''),
   GOOGLE_CLIENT_SECRET: Joi.string().allow('').default(''),
-  GOOGLE_REDIRECT_URI:  Joi.string().allow('').default('http://localhost:5000/api/v1/gmail/callback'),
+  GOOGLE_REDIRECT_URI:      Joi.string().allow('').default('http://localhost:5000/api/v1/gmail/callback'),
+  GOOGLE_AUTH_REDIRECT_URI: Joi.string().allow('').default('http://localhost:5000/api/v1/auth/google/callback'),
 }).unknown(true);
 
 const { error, value: env } = schema.validate(process.env);
 
 if (error) {
   throw new Error(`Environment validation failed: ${error.message}`);
+}
+
+const PLACEHOLDER_KEYS = new Set([
+  'change-me-in-production-min-32-chars!!',
+  'change_this_credentials_key_min_32_chars',
+  'change_this_answer_key_min_32_chars_here',
+]);
+
+if (env.NODE_ENV === 'production') {
+  if (PLACEHOLDER_KEYS.has(env.CREDENTIALS_ENCRYPTION_KEY) || PLACEHOLDER_KEYS.has(env.ANSWER_ENCRYPTION_KEY)) {
+    throw new Error('CREDENTIALS_ENCRYPTION_KEY/ANSWER_ENCRYPTION_KEY must not use the example placeholder value in production.');
+  }
+  if (env.CLOUDINARY_CLOUD_NAME === '' || env.CLOUDINARY_API_KEY === '' || env.CLOUDINARY_API_SECRET === '') {
+    throw new Error('Cloudinary credentials are required in production (local-disk upload fallback is not safe for multi-instance deployment).');
+  }
 }
 
 export default env;

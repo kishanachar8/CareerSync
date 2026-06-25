@@ -19,11 +19,11 @@ const ResumeDashboard = () => {
   if (listStatus === 'loading') return <Loader fullPage />;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Resumes</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-ink">Resumes</h1>
+        <p className="text-sm text-ink-muted mt-1">
           Upload up to 5 resumes. Skills are extracted automatically and used for AI job matching.
         </p>
       </div>
@@ -47,10 +47,10 @@ const ResumeDashboard = () => {
         )}
 
         {resumes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-gray-200 rounded-xl">
-            <FileText size={40} className="text-gray-300 mb-3" />
-            <p className="text-gray-500 font-medium">No resumes yet</p>
-            <p className="text-sm text-gray-400 mt-1">Upload a PDF above to get started</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-line rounded-xl bg-elevated">
+            <FileText size={40} className="text-ink-muted/40 mb-3" />
+            <p className="text-ink-muted font-medium">No resumes yet</p>
+            <p className="text-sm text-ink-muted/70 mt-1">Upload a PDF above to get started</p>
           </div>
         ) : (
           <div className="space-y-4">
