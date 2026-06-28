@@ -76,6 +76,13 @@ const bindServer = (server, port) =>
     server.listen(port);
   });
 
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "CareerSync API is running 🚀"
+  });
+});
+
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 const start = async () => {
